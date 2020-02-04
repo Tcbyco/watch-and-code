@@ -1,0 +1,109 @@
+<script src="../simpletest.js"></script>
+<script>
+/* Description:
+The lastIndexOf() method returns the last index at which a 
+given element can be found in the array, or -1 if it is 
+not present. The array is searched backwards.
+
+Function Signature
+lastIndexOf(array, elementToFind[, optionalStartingIndex])
+
+Return Value: 
+Index of found element or -1 if not found.
+
+Example 1:
+lastIndexOf([1,2,3,2], 2);
+>> 3
+
+Example 2: starting the search at index 1.
+lastIndexOf([2,2,2], 2, 1);
+>> 1 */
+
+function lastIndexOf(array, elementToFind, optionalStartingIndex) {
+  var length = array.length; 
+  var lastIndex = length - 1;
+  var startIndex = Number(optionalStartingIndex);
+
+  if (!Array.isArray(array)) {
+    throw new TypeError('The first argument to lastIndexOf must be an array');
+  }
+
+  if (startIndex < 0) {
+    startIndex += length;
+    if (startIndex < 0) {
+      return -1;
+    }
+  } 
+
+  if (startIndex > lastIndex) {
+    startIndex = lastIndex;
+  }
+
+  if (isNaN(startIndex)){
+    startIndex = lastIndex;
+  }
+
+  for (var i = startIndex; i > -1; i--) {
+    if (array[i] === elementToFind) {
+      return i;
+    }
+  }
+
+  return -1;
+};
+
+tests({
+  'If the first argument is not an array, TypeError should be thrown.': function() {
+    var isTypeError = false;
+    try {
+      lastIndexOf('not an array', 1);
+    } catch (error) {
+      isTypeError = error instanceof TypeError;
+    }
+    eq(isTypeError, true);
+    
+  },
+
+  'It should return a number': function() {
+    var result = lastIndexOf([1,2], 1);
+    eq(typeof(result), 'number');
+  },
+
+  'If elementToFind is in the array, it should return the last index of that element.': function() {
+    var result = lastIndexOf([1,2,2], 2);
+    eq(result, 2);
+  },
+
+  'If elementToFind is not in the array, it should return -1': function() {
+    var result = lastIndexOf([1,2], 3);
+    eq(result, -1); 
+  },
+  
+  'If startIndex is provided, search should begin at that index': function() {
+    var result = lastIndexOf([1,2,1], 1, 1);
+    eq(result, 0);
+  },
+
+  'If no startIndex, search should begin at the last index.': function() {
+    var result = lastIndexOf([1,2,1], 1);
+    eq(result, 2);
+  },
+
+  'It should convert startIndex to a number if possible': function() {
+    var result = lastIndexOf([1, 2, 3], 3, '1');
+    eq(result, -1);
+  },
+
+  'If startIndex cannot be converted to a number, search should begin at the last index': function() {
+    var result = lastIndexOf([1,2,1], 1, undefined);
+    eq(result, 2);
+  },
+
+  'If startIndex is negative, it should be used as the offset from the end of the array': function() {
+    var result = lastIndexOf([1,2,3,1], 1, -2);
+    eq(result, 0);
+  }
+
+});
+
+</script>

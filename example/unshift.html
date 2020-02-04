@@ -1,0 +1,160 @@
+<script src="../simpletest.js"></script>
+<script>
+/*
+Description
+Accepts an array and n additional arguments. Unshift adds the args to
+the beginning of the array in the order that they were provided, 
+then returns the new length of the array.
+
+Function Signature
+unshift(array, arg1[, ...argN])
+
+Return Value
+A number equal to the length of the new array.
+
+Examples
+let arr = [1, 2, 3]
+unshift([arr], 'a', 'b', 'c')
+>> 6
+console.log(arr)
+>> ['a', 'b', 'c', 1, 2, 3]
+
+let arr = [-2, -1, 0, 1, 2];
+unshift([arr], [-4, -3]); 
+>> 6
+console.log(arr)
+>> [[-4, -3], -2, -1, 0, 1, 2]
+*/
+
+function unshift(array, ...args) {
+  let arr = array;
+  if (
+    array === null ||
+    typeof arr === 'undefined' ||
+    typeof arr === 'string' ||
+    typeof arr === 'number' ||
+    typeof arr === 'symbol' ||
+    typeof arr === 'function'
+    ) {
+      throw new TypeError('The first argument to shift must be an array or array-like object.')
+      }
+  // Adjust obj.length or create if missing
+  if (arr.length >= 0) {
+    arr.length = Math.floor(arr.length);
+  } else {
+    arr.length = 0;
+  }
+  // Shift all array elements up, starting from the end.
+  for (i = arr.length - 1; i >= 0; i--) {
+    arr[i + args.length] = arr[i];
+  }
+  // add args to array
+  for (let i = 0; i < args.length; i++) {
+    arr[i] = args[i];
+    if (!Array.isArray(arr)) {
+      arr.length++
+    }
+  }
+  return arr.length;
+}
+
+tests({
+  'If first arg is a string, function, null, undefined, or number, it should throw typeError': function() {
+    try {
+      unshift('hi');
+    } catch (e) {
+      var isTypeError = e instanceof TypeError;
+      eq(isTypeError, true);
+    }
+    try {
+      unshift(undefined);
+    } catch (e) {
+      var isTypeError = e instanceof TypeError;
+      eq(isTypeError, true);
+    }
+    try {
+      unshift(null);
+    } catch (e) {
+      var isTypeError = e instanceof TypeError;
+      eq(isTypeError, true);
+    }
+    try {
+      unshift(8);
+    } catch (e) {
+      var isTypeError = e instanceof TypeError;
+      eq(isTypeError, true);
+    }
+    try {
+      unshift(function(){});
+    } catch (e) {
+      var isTypeError = e instanceof TypeError;
+      eq(isTypeError, true);
+    }
+    try {
+      unshift(true);
+    } catch (e) {
+      var isTypeError = e instanceof TypeError;
+      eq(isTypeError, true);
+    }
+  },
+
+  'It should add all arguments after the first to the beginning of the array.': function() {
+    let arr = [1,2]
+    unshift(arr, 3, 4);
+    eq(arr[0], 3);
+    eq(arr[1], 4);
+  },
+
+  'It should make room for the new args by shifting pre-existing elements to higher indexes.': function() {
+    let arr = [3, 4];
+    unshift(arr, 1, 2);
+    eq(arr[2], 3);
+    eq(arr[3], 4);
+  },
+
+  'It should return the new arr.length': function() {
+    let returnValue = unshift([2], 1);
+    eq(returnValue, 2);
+  },
+
+  'For array-like objects, it should increment obj.length by the number of arguments added to the array.': function() {
+    let obj = {0:2, length: 1}
+    unshift(obj, 1, 2);
+    eq(obj.length, 3);
+  },
+
+  'For array-like objects, if obj.length is not a number, it should be coerced to one.': function() {
+    let obj = {0:2, length: '1'}
+    unshift(obj, 1);
+    eq(typeof obj.length, 'number');
+  },
+
+  'For array-like objects, if obj.length is not a whole number, it should be rounded down to one before any elements are added.': function() {
+    let obj = {0:2, length: 1.5}
+    unshift(obj, 1);
+    eq(obj.length, 2);
+  },
+
+  'For array-like objects, if it does not have a length property, it should be created and set to 0 before adding any new elements': function() {
+    let obj = {0:2}
+    unshift(obj, 1);
+    eq(obj.length, 1);
+  },
+
+  'For array-like objects, it should add the 0-indexed args to the object.': function() {
+    let obj = {0:3, length: 1}
+    unshift(obj, 1, 2);
+    eq(obj.length, 3);
+    eq(obj[0], 1);
+    eq(obj[1], 2);  
+  },
+
+  'For array-like objects, it should make room for the new args by shifting pre-existing elements to higher indexes.': function() {
+    let obj = {0:3, 1: 4, length: 2}
+    unshift(obj, 1, 2);
+    eq(obj[2], 3);
+    eq(obj[3], 4);
+  }
+})
+
+</script>

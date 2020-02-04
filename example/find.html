@@ -1,0 +1,166 @@
+<script src="../simpletest.js"></script>
+<script>
+/* Description:
+Returns the value of the first element in the array 
+that returns true when passed to the callback. 
+Otherwise undefined is returned. 
+
+Function Signature
+find(array, callback(element[, index[, array]])[, thisArg])
+
+Parameters
+array
+callback
+  currentElement
+  currentIndex
+  array
+thisArg (optional)
+
+Return Value: The passing element or undefined.
+
+Example 1 - Standard use case
+find([1,2], function(number){
+  return number === 2;
+});
+>> returns 2
+
+Example 2 - Sparse Array Behavior
+find([1, , 2], function(number) {
+  return !number;
+});
+>> will pass empty index to callback, then return it (value will be undefined)
+*/
+function find(array, callback, optionalThis) {
+  var length = array.length;
+  var callback = callback;
+
+  // If first argument is not an array, throw TypeError.
+  if (!Array.isArray(array)) {
+    throw new TypeError('First argument to find() must be an array.');
+  }
+
+  // If second argument is not a function, throw TypeError.
+  if (!(typeof callback === 'function')) {
+    throw new TypeError('Second argument to find() must be a function.');
+  }
+
+  if (optionalThis) {
+    callback = callback.bind(optionalThis);
+  } 
+
+  // If callback returns true for an element, return that element.
+  for (var i = 0; i < length; i++) {
+    if (callback(array[i], i, array)) {
+      return array[i];
+    }
+  }
+}
+
+tests ({
+  'If the first argument to find() is not an array, TypeError should be thrown': function () {
+    try {
+      find('not an array', function(){});
+    } catch (e) {
+      var instanceofTypeError = e instanceof TypeError;
+    }
+    eq(instanceofTypeError, true);
+  },
+
+  'If the second argument to find() is not a function, TypeError should be thrown.': function() {
+    try {
+      find([1], 'not a function');
+    } catch (e) {
+      var instanceofTypeError = e instanceof TypeError;
+    }
+    eq(instanceofTypeError, true);
+  },
+
+  'It should take an optional thisArg as the third argument to find().': function() {
+    find([1], function() {
+      eq(this.text === 'I should be accessible inside callback', true)
+    }, {text: 'I should be accessible inside callback'});
+  },
+
+  'It should run the callback array.length times': function() {
+    var numberOfTimesCallbackHasRun = 0;
+    find([1,2], function(){
+      numberOfTimesCallbackHasRun++;
+    });
+    eq(numberOfTimesCallbackHasRun, 2);
+  },
+
+  'It should pass in the ith element as the first argument to the callback.': function() {
+    find([1], function(number) {
+      eq(number, 1);
+    });
+  },
+
+  'It should pass in i as the second argument to the callback.': function() {
+    find([1], function(number, index) {
+      eq(index, 0);
+    });
+  },
+
+  'It should pass in the array as the third argument to the callback.': function() {
+    var testArray = [1];
+    find(testArray, function(number, index, originalArray) {
+      eq(originalArray, testArray);
+    });
+  },
+
+  'It should return the first element that returns true after being passed to callback.': function() {
+    var returnValue = find([1,2], function(number) {
+      return number === 2;
+    });
+    eq(returnValue, 2);
+  },
+
+  'It should not process further elements once the callback returns true': function() {
+    var numberOfTimesCallbackHasRun = 0;
+    find([1,2], function(number){
+      numberOfTimesCallbackHasRun++;
+      return number === 1;
+    });
+    eq(numberOfTimesCallbackHasRun, 1);
+  },
+
+  'It should return undefined if no element in the array returns true.': function() {
+    var returnValue = find([1,2], function(number) {
+      return number === 3;
+    });
+    eq(returnValue === undefined, true);
+  },
+
+  'It should include empty indexes in the search.': function() {
+    var numberOfTimesCallbackHasRun = 0;
+    find([1,2, , undefined, null], function(){
+      numberOfTimesCallbackHasRun++;
+    });
+    eq(numberOfTimesCallbackHasRun, 5);
+  },
+
+  'It should not run the callback on elements pushed to the array during callback.': function() {
+    var numberOfTimesCallbackHasRun = 0;
+    find([1], function(number, index, array){
+      numberOfTimesCallbackHasRun++;
+      array[1] = ['I should not be passed to callback'];
+    });
+    eq(numberOfTimesCallbackHasRun, 1);
+  },
+
+  'It should not mutate the original array': function() {
+    var testArray = [1];
+    find(testArray, function() {});
+    eq(testArray.length, 1);
+    eq(testArray[0], 1);
+  },
+
+  'If an existing array element is changed before being passed to callback, the new value should be used.' : function() {
+    var returnValue = find([1,2], function(element, index, originalArray) {
+      originalArray[1] = 0;
+      return element === 0;
+    });
+    eq(returnValue, 0);
+  }
+})
+</script>

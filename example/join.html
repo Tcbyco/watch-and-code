@@ -1,0 +1,125 @@
+<script src="../simpletest.js"></script>
+<script>
+/* 
+The join() method creates and returns a new string by 
+concatenating all of the elements in an array (or an 
+array-like object), separated by commas or a specified 
+separator string. If the array has only one item, then 
+that item will be returned without using the separator.
+
+Function signature:
+join(array[, separator])
+
+Return value:
+A new string.
+
+Example 1:
+join(['hi', 'there']);
+>>'hi,there'
+
+Example 2: using the separator string.
+join(['hi', 'there'], ' ');
+>> 'hi there'
+
+Example 3: an array-like object
+join( {0: 'hi', 
+       1: 'there',
+       2: 'Gordon'});
+>> 'hi,there,Gordon'
+
+Example 4: separator is converted to string if number
+join(['hi', 'there'], 8);
+>> 'hi8there'
+
+Example 5: separator is converted to string if null
+join(['hi', 'there'], null);
+>> 'hinullthere'
+
+Example 6: if array is empty, return an empty string.
+join([], 'I won't be used');
+>> '';
+*/ 
+
+function join(array, separator) {
+  var length = array.length;
+  var returnString = '';
+  
+  if (arguments.length === 1) {
+    separator = ',';
+  }
+  
+  if (length === 1) {
+    return returnString + array[0];
+  } else {
+    var separatorCount = 0;
+    for (var i = 0; i < length; i++) {
+      var currentElement = array[i] ? array[i] : '';
+      returnString = separatorCount < length - 1 ? returnString + currentElement + separator : returnString + currentElement;
+      separatorCount ++;
+    }
+  }
+  return returnString;
+}
+
+tests({
+  
+  'It should take two arguments: array and an optional separator': function() {
+    eq(join.length === 2, true);
+  },
+  
+  'It should return a string': function() {
+    var returnString = join(['hi']);
+    eq(typeof(returnString) === 'string', true);
+  },
+  
+  'If the array is empty, it should return an empty string': function() {
+    var result = join([]);
+    eq(result, '');
+  },
+  
+  'If the array has 1 item, it should be returned without adding the separator.': function() {
+    var result = join(['hi']);
+    eq(result, 'hi');
+  },
+  
+  'Each element in the array should be concatenated in the return string, with separator set to a comma by default': function() {
+    var result = join(['hi', 'there']);
+    eq(result, 'hi,there');
+  },
+  
+  'If separator is provided, it should be used instead of a comma.': function() {
+    var result = join(['hi', 'there'], ' ');
+    eq(result, 'hi there');
+  },
+  
+  'Separator should be converted to a string if it is a number.': function() {
+    var result = join(['hi', 'there'], 6);
+    eq(result, 'hi6there');
+  },
+  
+  'Separator should be converted to a string if it is null.': function() {
+    var result = join(['hi', 'there'], null);
+    eq(result, 'hinullthere'); 
+  },
+  
+  'Empty array indexes should be represented as an empty string': function() {
+    var result = join([ , 'there']);
+    eq(result, ',there'); 
+  },
+  
+  'It should not mutate the original array.': function() {
+    var originalArray = ['hi'];
+    var returnString = join(originalArray);
+    eq(originalArray === returnString, false);
+    eq(JSON.stringify(originalArray), JSON.stringify(['hi']))
+  },
+  
+  'It should work with array-like objects': function() {
+    var testObject = {0: 'hi', 1: 'there', length: 2}
+    var returnString = join(testObject, ' ');
+    eq(returnString, 'hi there');
+  },
+
+
+})
+</script>

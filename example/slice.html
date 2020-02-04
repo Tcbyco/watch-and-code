@@ -1,0 +1,145 @@
+<script src="../simpletest.js"></script>
+<script>
+/* 
+Description:
+Slice() returns a new array object consisting of a shallow copy 
+of a portion of an array, beginning at begin and ending at 
+(but not including) end. The original array is not modified.
+
+Function Signature
+slice(array[, begin[, end]])
+
+Return Value: 
+Returns an array.
+
+Example 1:
+slice([1,2,3], 0, 2);
+>> returns [1, 2]
+
+Example 2: negative begin
+slice([1, 2, 3, 4, 5], -3);
+>>> returns [3, 4, 5]
+
+Example 2: negative end
+slice([1, 2, 3, 4, 5], 0, -2);
+>>> returns [1, 2, 3]
+
+*/
+
+function slice (array, begin, end) {
+  var length = Number(array.length);
+  var begin = Number(begin) ? begin : 0;
+  var end = Number(end) ? end : length;
+  
+  if (begin < 0) { // For negative begin, count back from end of the array.
+    begin = length + begin;
+
+    if (begin < 0) { // If it's still negative, start at array[0].
+      begin = 0;
+    }
+  }
+ 
+  if (end < 0) { // For negative end, count back from end of the array.
+    end = length + end;
+
+  } else if (end > length) { // end should not exceed array.length.
+    end = length;
+  } 
+
+  // Slicing. Simpler to use .push, but avoiding array methods for this exercise.
+  var sliceLength = end - begin;
+  var currentIndex = begin;
+  var newArray = [];
+
+    for (var i = 0; i < sliceLength; i++) {
+      newArray[i] = array[currentIndex];
+      currentIndex++;
+    }
+
+  return newArray;
+
+}
+
+tests({
+  
+  'It should have three parameters: array, begin, end': function () {
+    var parameterCount = slice.length;
+    eq(parameterCount, 3);
+  },
+  
+  'It should return an array.': function () {
+    var newArray = slice([1]);
+    eq(Array.isArray(newArray), true);
+  },
+
+  'If only array is provided, it should return a shallow copy of that array': function () {
+    var copy = slice([1]);
+    eq(copy.length, 1);
+    eq(copy[0], 1); 
+  },
+  
+  'If begin cannot be converted to a number, it should start from index 0.': function () {
+    var result = slice([1], 'apple');
+    eq(result.length, 1);
+    eq(result[0], 1);
+  },
+  
+  'If begin is provided and positive, it should start from begin.': function () {
+    var result = slice([1,2], 1);
+    eq(result.length, 1);
+    eq(result[0], 2);
+  },
+
+  'If begin is negative, it should be offset from the end of the array.': function () {
+    var result = slice([1,2,3], -2);
+    eq(result.length, 2);
+    eq(result[0], 2);
+    eq(result[1], 3);
+  },
+
+  'If begin is negative after offset, it should begin at 0': function () {
+    var result = slice([1,2,3], -10);
+    eq(result.length, 3);
+    eq(result[0], 1);
+    eq(result[1], 2);
+    eq(result[2], 3);
+  },
+  
+  'If begin is >= array.length, it should return an empty array.': function () {
+    var result = slice([1,2,3], 4);
+    eq(result.length, 0);
+    eq(Array.isArray(result), true);
+  },
+
+  'If end cannot be converted to a number, it should slice to the end of the array.': function () {
+    var result = slice([1,2,3], 1, 'string');
+    eq(result.length, 2);
+    eq(result[1], 3);
+  },
+  
+  'If end is provided, it should slice up to but not including array[end] ': function () {
+    var result = slice([1,2,3], 0, 2);
+    eq(result.length, 2);
+    eq(result[1], 2);
+  },
+  
+  'If end is > array.length, it should only slice to the end of the array.': function () {
+    var result = slice([1,2], 0, 4);
+    eq(result.length, 2);
+  },
+
+  'If end is negative, it should be offset from the end of the array.': function () {
+    var result = slice([1,2,3,4], 0, -2);
+    eq(result.length, 2);
+    eq(result[0], 1);
+    eq(result[1], 2);
+  },
+
+  'It should not mutate the original array.': function () {
+    var testArray = [1,2,3,4];
+    var newArray = slice(testArray, 0, -2);
+    eq(testArray === newArray, false);
+    eq(JSON.stringify(testArray), JSON.stringify([1,2,3,4]));
+  }
+})
+</script>

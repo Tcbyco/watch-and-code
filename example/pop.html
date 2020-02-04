@@ -1,0 +1,166 @@
+<script src="../simpletest.js"></script>
+<script>
+/*
+Description
+Removes the last element in an array or array-like object, 
+and returns that element.
+
+Function Signature
+pop(array)
+
+Return value
+The removed element, or undefined if the array is empty.
+
+Example:
+var array = [1,2]
+pop(array);
+>> 2
+console.log(array)
+>> [1]
+
+var arrayLikeObj = {0:1, 1:2, length: 2}
+pop(arrayLikeObj);
+>> 2
+console.log(arrayLikeObj)
+>> {0:1, length: 1}
+*/
+function pop(array) {
+  if (array === undefined || 
+      array === null ||
+      typeof array === 'string'||
+      typeof array === 'number' ||
+      typeof array === 'function') {
+        throw new TypeError('Pop can only accept arrays or array-like objects.')
+      }
+  if (array.length > 0) {
+    array.length = Math.floor(array.length);
+    var poppedElement = array[array.length - 1];
+    delete array[array.length - 1];
+    array.length--;
+    return poppedElement;
+  } else {
+    array.length = 0;
+  }
+
+}
+
+tests({
+'If the first argument is not an array or array-like object, it should throw TypeError.': function () {
+  try {
+    pop('hi');
+  } catch (e) {
+    var isTypeError = e instanceof TypeError;
+    eq(isTypeError, true);
+  }
+  try {
+    pop(undefined);
+  } catch (e) {
+    var isTypeError = e instanceof TypeError;
+    eq(isTypeError, true);
+  }
+  try {
+    pop(null);
+  } catch (e) {
+    var isTypeError = e instanceof TypeError;
+    eq(isTypeError, true);
+  }
+  try {
+    pop(8);
+  } catch (e) {
+    var isTypeError = e instanceof TypeError;
+    eq(isTypeError, true);
+  }
+  try {
+    pop(function(){});
+  } catch (e) {
+    var isTypeError = e instanceof TypeError;
+    eq(isTypeError, true);
+  }
+  try {
+    pop(true);
+  } catch (e) {
+    var isTypeError = e instanceof TypeError;
+    eq(isTypeError, true);
+  }
+},
+
+'It should return undefined if array is empty.': function () {
+  var returnValue = pop([]);
+  eq(typeof returnValue, 'undefined')
+},
+
+'It should return undefined if the array-like object is empty.': function () {
+  var returnValue = pop({});
+  eq(typeof returnValue, 'undefined')
+},
+
+'If array.length > 0, it should remove the last value in the array.': function () {
+  var testArray = [1,2]
+  pop(testArray);
+  eq(JSON.stringify(testArray), JSON.stringify([1]));
+},
+
+'If array.length > 0, it should return the removed value.': function () {
+  var testArray = [1]
+  returnValue = pop(testArray);
+  eq(returnValue, 1);
+},
+
+'If array.length > 0, it should decrement array.length by 1.': function () {
+  var testArray = [1,2]
+  pop(testArray);
+  eq(JSON.stringify(testArray), JSON.stringify([1]));
+},
+
+'If the first arg is an array-like object, it should remove the value at property obj.length - 1.': function () {
+  var testObj = {0:1, length:1}
+  pop(testObj);
+  eq(JSON.stringify(testObj), JSON.stringify({length: 0}))
+},
+
+'If the first arg is an array-like object, and an element is removed by pop(), it should return the removed element.': function () {
+  var testObj = {0:1, length: 1}
+  returnValue = pop(testObj);
+  eq(returnValue, 1);
+},
+
+'If an element was removed from the array-like object, object.length should be decremented by 1.': function () {
+  var testObj = {0:1, length: 1}
+  pop(testObj);
+  eq(testObj.length, 0);
+},
+
+'If obj.length is not a number, it should be coerced to one if possible.' : function() {
+  var testObj = {0:1, length: '1'}
+  pop(testObj);
+  eq(testObj.length, 0);
+},
+
+'If obj.length is > 0 and not an integer, it should be rounded down before decrementing.' : function() {
+  var testObj = {0:1, length: 1.5}
+  pop(testObj);
+  eq(testObj.length, 0); // If rounding failed, this would return 0.5
+},
+
+'If obj.length cannot be converted to an integer, it should be set to 0' : function() {
+  var testObj = {0:1, length: "Can't be coerced to number"}
+  var returnValue = pop(testObj);
+  eq(testObj.length, 0);
+  eq(returnValue, undefined);
+},
+
+'If obj.length is less than 0, it should be set to 0' : function() {
+  var testObj = {0:1, length: -1}
+  var returnValue = pop(testObj);
+  eq(JSON.stringify(testObj), JSON.stringify({0:1, length: 0}))
+  eq(returnValue, undefined);
+},
+
+'If obj.length is greater than the number of 0-indexed values, obj.length should be decremented without anything being popped.' : function() {
+  var testObj = {0:1, length: 2}
+  var returnValue = pop(testObj);
+  eq(JSON.stringify(testObj), JSON.stringify({0:1, length: 1}))
+  eq(returnValue, undefined);
+}
+})
+</script>

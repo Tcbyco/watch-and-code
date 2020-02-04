@@ -1,0 +1,107 @@
+<script src="../simpletest.js"></script>
+<script>
+/* 
+Description:
+Creates an array consisting of the arguments passed to concat(). 
+It does not mutate the arguments passed to concat.
+It does not recurse into nested array arguments.
+
+Function Signature
+concat(array[, value1[, ...[,valueN]]]);
+
+Parameters
+array
+value 1
+...value N
+
+Return Value: 
+Returns an array.
+
+Example 1:
+concat([1, 2], [3, 4]);
+> [1, 2, 3, 4];
+
+Example 2:
+concat([[1,2,3], 2, 3], [4]);
+>> [[1,2,3], 2, 3, 4] 
+*/
+
+function concat(array, ...args) {
+  var newArray = [];
+  var length = arguments.length;
+
+  if (!Array.isArray(array)) {
+    throw new TypeError('The first argument to concat must be an array.')
+  }
+
+  for (var i = 0; i < length; i++) {
+    if (Array.isArray(arguments[i])) {
+      var currentArray = arguments[i];
+      var arrLength = currentArray.length;
+      for (var currentIndex = 0; currentIndex < arrLength; currentIndex++) {
+        newArray[newArray.length] = (currentArray[currentIndex]);
+      }
+    } else {
+      newArray[newArray.length] = arguments[i];
+    }   
+  }
+
+  return newArray;
+}
+
+tests({
+  'If the first argument is not an array, TypeError should be thrown.': function() {
+    var isTypeError = false;
+    try {
+      concat('Not an array');
+    } catch (e) {
+      isTypeError = e instanceof TypeError;
+    }
+    eq(isTypeError, true);
+  },
+
+  'It should return an array': function() {
+    var returnValue = concat([1]);
+    var isArray = Array.isArray(returnValue);
+    eq(isArray, true);
+  },
+
+  'It should combine arrays': function() {
+    var combinedArray = concat([1], [2]);
+    eq(JSON.stringify(combinedArray), JSON.stringify([1, 2]));
+  },
+
+  'It should accept any number of additional arguments, of type object, number, or string.': function() {
+    var returnValue = concat([1], 'string', {name: 'object'}, 4);
+    eq(returnValue.length, 4);
+    eq(returnValue[1], 'string');
+    eq(returnValue[2].name, 'object');
+    eq(returnValue[3], 4);
+  },
+
+  'If only 1 argument is provided, and it is an array, it should return a shallow copy of that array.': function() {
+    var testArray = [1];
+    var arrayCopy = concat(testArray);
+
+    eq(JSON.stringify(testArray), JSON.stringify(arrayCopy));
+    eq(arrayCopy === testArray, false);
+  },
+
+  'Objects should reference the same object that was passed to concat()': function() {
+    var testObject = {'one': 1}
+    var result = concat([0], testObject);
+
+    eq(result[1], testObject);
+    eq(result[1]['one'], 1);
+  },
+  
+  'It should not mutate the original array.': function() {
+    var testArray = [1];
+    var result = concat(testArray, [2]);
+
+    eq(testArray[0], 1);
+    eq(testArray.length, 1);
+  }
+})
+
+</script>

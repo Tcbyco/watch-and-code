@@ -1,0 +1,237 @@
+<script src="../simpletest.js"></script>
+<script>
+/*
+Description
+Fills (modifies) all the elements of an array from a start index 
+(default zero) up to but not including end index (default array length) 
+with a static value. It returns the modified array.
+
+Function Signature
+fill(array, value, start, end)
+
+Return value
+The mutated array.
+
+Examples
+const array = [1,2,3]
+fill(array, 4, 3, 6)
+>> [1,2,3,4,4]
+
+*/
+
+function fill(array, value, start, end) {
+  if (
+    array === null ||
+    typeof array === 'undefined' ||
+    typeof array === 'string'
+    ) {
+      throw new TypeError('The first argument to fill must be an array or array-like object.')
+      }
+  
+  array = Object.prototype.valueOf.call(array);
+
+  let startIndex;
+  if (Boolean(+start)) {
+    startIndex = Math.floor(start);
+    if (startIndex < 0) {
+      startIndex += array.length;
+    }
+  } else {
+    startIndex = 0;
+  }
+
+  let endIndex;
+  if (Boolean(+end)) {
+    endIndex = Math.floor(end);
+    if (endIndex < 0) {
+      endIndex += array.length;
+    }
+  } else {
+    endIndex = array.length;
+  }
+  
+  for (let i = startIndex; i < endIndex; i++) {
+    array[i] = value;
+  }
+  return array;
+}
+
+tests({ 
+  'If first arg is a string, null, or undefined, it should throw typeError': function() {
+    try {
+      fill('hi');
+    } catch (e) {
+      var isTypeError = e instanceof TypeError;
+      eq(isTypeError, true);
+    }
+    try {
+      fill(undefined);
+    } catch (e) {
+      var isTypeError = e instanceof TypeError;
+      eq(isTypeError, true);
+    }
+    try {
+      fill(null);
+    } catch (e) {
+      var isTypeError = e instanceof TypeError;
+      eq(isTypeError, true);
+    }
+  },
+
+  'It should return an array.': function(){
+    let arr = fill([1]);
+    eq(Array.isArray(arr), true);
+  },
+
+  'If no value, value should be undefined.': function(){
+    let arr = [1];
+    arr = fill(arr);
+    eq(JSON.stringify(arr), JSON.stringify([undefined]));
+  },
+
+  'The returned array should be the same object supplied to fill.': function(){
+    let arr = [1];
+    returnArray = fill(arr)
+    eq(arr, returnArray);
+  },
+  
+  'If value, it should fill the array with value.': function(){
+    let arr = [1,2]
+    returnValue = fill(arr, 0);
+    eq(JSON.stringify(returnValue), JSON.stringify([0, 0]));
+  },
+  
+  'If no start, or start is not a number, it should be set to 0': function(){
+    let arr = [1, 2];
+    arr = fill(arr, 0);
+    eq(JSON.stringify(arr), JSON.stringify([0,0]));
+
+    arr = [1, 2];
+    arr = fill(arr, 0, 'NotNum');
+    eq(JSON.stringify(arr), JSON.stringify([0,0]));
+  },
+  
+  'If no end, or end is not a number, it should be set to array.length': function(){
+    let arr = [1, 2];
+    arr = fill(arr, 0)
+    eq(JSON.stringify(arr), JSON.stringify([0,0]));
+
+    arr = [1, 2];
+    arr = fill(arr, 0, 0, 'NotNum')
+    eq(JSON.stringify(arr), JSON.stringify([0,0]));
+  },
+  
+  'If start, it should begin at that index.': function(){
+    let arr = [1,2,3]
+    arr = fill(arr, 0, 1);
+    eq(JSON.stringify(arr), JSON.stringify([1,0,0]));
+  },
+  
+  'If end, it should fill up to but not including that index.': function(){
+    let arr = [1,2,3]
+    arr = fill(arr, 0, 0, 2);
+    eq(JSON.stringify(arr), JSON.stringify([0,0,3]));
+  },
+  
+  'If start is negative, it should offset from the end of the array.': function(){
+    let arr = [1,2,3];
+    arr = fill(arr, 4, -2);
+    eq(JSON.stringify(arr), JSON.stringify([1, 4, 4]));
+  },
+  
+  'If end is negative, it should be offset from the end of the array.': function(){
+    let arr = [1,2,3,4];
+    arr = fill(arr, 0, 0, -2);
+    eq(JSON.stringify(arr), JSON.stringify([0, 0, 3, 4]));
+  },
+  
+  'It should add 0-indexed values to objects, if the object has a length property.': function(){
+    let obj = {length: 3}
+    fill(obj, 0);
+    eq(JSON.stringify(obj), JSON.stringify({0:0, 1:0, 2:0, length:3}));
+  },
+  
+  'If called on an object without a length property, it should return that object unchanged.': function(){
+    let obj = {0:1}
+    let result = fill(obj, 1);
+    eq(result, obj)
+  },
+  
+  'If called on a Function, it should return that object unchanged.': function(){
+    function foo(){}
+    let result = fill(foo, 1);
+    eq(result, foo);
+  },
+  
+  'If called on a String object, it should return that object unchanged.': function(){
+    let result = fill(new String, 1);
+    eq(result instanceof String, true);
+    eq(result.valueOf(), "");
+  },
+  
+  'If called on a Boolean object, it should return that object unchanged.': function(){
+    let result = fill(new Boolean(true), 1);
+    eq(result instanceof Boolean, true);
+    eq(result.valueOf(), true);
+  },
+
+  'If called on a number primitive, it should return that primitive converted to a number Object.': function(){
+    let result = fill(8);
+    eq(result instanceof Number, true);
+    eq(result.valueOf(), 8);
+  },
+  
+  'If called on a Boolean primitive, it should return that value converted to a boolean object.': function(){
+    let result = fill(true);
+    eq(result instanceof Boolean, true);
+    eq(result.valueOf(), true);
+  },
+  
+  'If called on a string, it should throw TypeError.': function(){
+    try {
+      fill('string');
+    } catch (e) {
+      let isTypeError = e instanceof TypeError;
+      eq(isTypeError, true);
+    }
+  },
+  
+  'If called on null, it should throw TypeError.': function(){
+    try {
+      fill(null);
+    } catch (e) {
+      let isTypeError = e instanceof TypeError;
+      eq(isTypeError, true);
+    }
+  },
+  
+  'If called on undefined, it should throw TypeError.': function(){
+    try {
+      fill(undefined);
+    } catch (e) {
+      let isTypeError = e instanceof TypeError;
+      eq(isTypeError, true);
+    }
+  },
+
+  'If value is an object, it should fill the array or object with references to that object.': function(){
+    let obj = {apple: 'test'}
+    var arr = [1,2];
+    fill(arr, obj);
+    eq(arr[0], obj);
+    eq(arr[1], obj);
+  },
+  
+  'If start is not an integer, it should be coerced to one if possible.': function(){
+    let arr = [1,2,3];
+    fill(arr, 0, 1.5);
+    eq(JSON.stringify(arr), JSON.stringify([1,0,0]));
+  },
+  
+  'If end is not an integer, it should be coerced to one if possible.': function(){
+    let arr = [1,2,3];
+    fill(arr, 0, 0, 2.5);
+    eq(JSON.stringify(arr), JSON.stringify([0,0,3]));
+  },
+})
+</script>

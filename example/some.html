@@ -1,0 +1,173 @@
+<script src="../simpletest.js"></script>
+<script>
+/*
+Description
+Returns true if at least one element returns true when 
+passed to callback. Otherwise, false is returned. 
+
+Function Signature
+some(array, callback(element[, index[, array]])[, thisArg])
+
+Parameters
+array
+callback
+ currentElement
+ currentIndex
+ array
+thisArg (optional)
+
+Return Value: Boolean.
+
+Example 1 - Standard use case
+some[1,2], function(number) {
+  return number % 2 === 0;
+});
+>> returns true
+
+Example 2 - Sparse Array Behavior
+some([1, , 3, undefined, null], function(element) {
+ console.log(element);
+});
+>> 1, 3, undefined, null
+*/
+function some(array, callback, optionalThis) {
+  if (!Array.isArray(array)) {
+    throw new TypeError('The first argument to some() must be an array.');
+  }
+
+  if (!(typeof callback === 'function')) {
+    throw new TypeError('The second argument to some() must be a function.');
+  }
+
+  var callback = callback;
+  var length = array.length;
+
+  if (optionalThis) {
+    callback = callback.bind(optionalThis); 
+  }
+
+  
+  for (var i = 0; i < array.length; i++) {
+    if (i in array && callback(array[i], i, array)) {
+      return true;
+    }   
+  }
+  // If nothing returned true.
+  return false;
+}
+
+tests ({
+  'If the first argument to some is not an array, TypeError should be thrown': function() {
+    try {
+      some('This should fail');
+    } catch (e) {
+      var isTypeError = e instanceof TypeError;
+    }
+    eq(isTypeError, true);
+  },
+
+  'If the second argument to some is not a function, TypeError should be thrown.': function() {
+    try {
+      some([1], 'Not a function');
+    } catch (e) {
+      var isTypeError = e instanceof TypeError;
+    }
+    eq(isTypeError, true);
+  },
+
+  'It should run the callback array.length times.': function() {
+    var numberOfTimesCallbackHasRun = 0;
+    some([1,2], function() {
+      numberOfTimesCallbackHasRun++
+    });
+    eq(numberOfTimesCallbackHasRun, 2);
+  },
+
+  'It should pass in the ith element as the first argument to the callback.': function() {
+    some([1], function(number){
+      eq(number, 1);
+    });
+  },
+
+  'It should pass in i as the second argument to the callback.': function() {
+    some([1], function(number, index) {
+      eq(index, 0);
+    });
+  },
+
+  'It should pass in the array as the third argument to the callback.': function() {
+    var testArray = [1];
+    some(testArray, function(number, index, array) {
+      eq(testArray, array);
+    });
+  },
+
+  'It should take an optional this as the third argument to some().': function() {
+    var testObject = {text: 'I should be accessible inside the callback'}
+    some([1], function() {
+      eq(this.text === 'I should be accessible inside the callback', true);
+    }, testObject);
+  },
+
+  'It should return true if any element returns true after being passed to callback.': function() {
+    var testArray = [1, 2, 3];
+    var atLeastOneTrue = some(testArray, function(element) {
+      return element === 2; 
+    });
+    eq(atLeastOneTrue, true);
+  },
+
+  'It should not process further elements once the callback returns true': function() {
+    var numberOfTimesCallbackHasRun = 0;
+    some([1, 2, 3], function(element) {
+      numberOfTimesCallbackHasRun++;
+      return element === 1;
+    });
+    eq(numberOfTimesCallbackHasRun, 1);
+  },
+
+  'It should return false if no element in the array returns true.': function() {
+    var anyTrue = some([1], function(element) {
+      return element === 2;
+    });
+    eq(anyTrue, false);
+  },
+
+  'It should return false if the array is empty': function() {
+    var emptyArray = [];
+    var emptyArrayReturnValue = some(emptyArray, function(){
+      // should still return false
+      return true;
+    eq(emptyArrayReturnValue, false);
+    });
+  },
+
+  'It should not run the callback on empty indexes.': function() {
+    var sparseArray = [1, /* empty*/, undefined, null];
+    var numberOfTimesCallbackHasRun = 0;
+    
+    some(sparseArray, function() {
+      numberOfTimesCallbackHasRun++
+    });
+    eq(numberOfTimesCallbackHasRun, 3);
+
+  },
+
+  'It should not pass in elements appended to the array during callback.': function() {
+    var numberOfTimesCallbackHasRun = 0;
+    some([1], function(number, index, array) {
+      numberOfTimesCallbackHasRun++;
+      array.push[number + 1];
+    });
+    eq(numberOfTimesCallbackHasRun, 1);
+  },
+
+  'It should not mutate the array.' : function() {
+    var array = [1];
+    var result = some(array, function(element) {
+      return element === 1
+    });
+    eq(JSON.stringify(array), JSON.stringify([1]));
+  }
+});
+</script>

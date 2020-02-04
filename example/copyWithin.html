@@ -1,0 +1,284 @@
+<script src="../simpletest.js"></script>
+<script>
+/*
+Description
+Copies a section of an array and pastes it to a location within that same array.
+This does not modify array.length.
+
+Function Signature
+copyWithin(array, target[, start[, end]])
+
+target
+The array index where pasting will begin.
+
+start(optional)
+Index to start copying from. Default = 0. Negative values will be offset from
+the end of the array.
+
+end(optional)
+Index where copying should finish. The last element to be copied will
+be at the index before this one. Negative values will be offset from the end
+of the array. 
+
+Return Value
+The mutated array.
+
+Examples
+const arr = [1,2,3];
+copyWithin(arr, 0);
+console.log(arr);
+>> [1,2,3];
+
+const arr = [1,2,3];
+copyWithin(arr, 1);
+console.log(arr);
+>> [1,1,2];
+
+const arr = [1,2,3,4,5];
+copyWithin(arr, 0, 1, -2);
+console.log(arr);
+>> [2,3,3,4,5];
+
+const arrayObject = {3:1, length: 5};
+[].copyWithin.call(arrayObject, 0, 3);
+// {0: 1, 3: 1, length: 5}
+
+*/
+
+function copyWithin(array, target, start, end) {
+  if (
+    typeof array === 'string' ||
+    typeof array === 'undefined' ||
+    array === null) {
+      throw new TypeError('copyWithin cannot accept first argument of type string, undefined, or null.')
+      }
+
+  array = Object.valueOf.call(array);
+
+  if (
+    array instanceof Number ||
+    array instanceof Function ||
+    array instanceof Boolean ||
+    array instanceof String) {
+      return array;
+    }
+  
+  end = end ? end : array.length;
+  if (end < 0) {
+    end += array.length;
+    if (end < 0) {
+      return array;
+    }
+  }
+
+  start = start ? start : 0;
+  if (start < 0) {
+    start += array.length;
+    if (start < 0) {
+      start = 0;
+    }
+  } else if (start > array.length) {
+      return array;
+    }
+  
+  target = (target < 0) ? array.length + target : target;
+  if (target < 0) {
+    return array;
+  }
+  let segmentLength = end - start;
+
+  // make a copy
+  let i;
+  let arrayCopy = [];
+  for (i = start; i < end; i++) {
+    if (i in array) {
+      arrayCopy.push(array[i]);
+    }
+    
+  }
+
+  // paste onto original array
+  for (i = 0; i < segmentLength; i++) {
+    if (target < array.length && i in arrayCopy) {
+      array[target] = arrayCopy[i]
+      target++;
+    } else {
+      return array;
+    }
+  }
+  return array;
+}
+
+tests({
+  
+  'It should return the same array': function() {
+    const arr = [1];
+    let result = copyWithin(arr);
+    eq(result, arr);
+  },
+
+  'If target is positive and less than the length of the array, pasting should begin at target.': function() {
+    const array = [1,2,3];
+    let result = copyWithin(array, 1);
+    eq(JSON.stringify(result), JSON.stringify([1,1,2]));
+  },
+
+  'If target is greater than the length of the array, it should skip copying and return the array unchanged.': function() {
+    const array = [1,2,3];
+    let result = copyWithin(array, 4);
+    eq(JSON.stringify(result), JSON.stringify([1,2,3]));
+  },
+
+  'If target is less than 0, it should be taken as offset from the end of the array.': function() {
+    const array = [1,2,3];
+    let result = copyWithin(array, -1);
+    eq(JSON.stringify(result), JSON.stringify([1,2,1]));;
+  },
+
+  'If negative target is still less than 0 after offset, it should skip copying and return the array unchanged.': function() {
+    const array = [1,2,3];
+    let result = copyWithin(array, -10);
+    eq(JSON.stringify(result), JSON.stringify([1,2,3]));;
+  },
+
+  'If no start, start should default to 0': function() {
+    const array = [1,2,3];
+    let result = copyWithin(array, 1);
+    eq(JSON.stringify(result), JSON.stringify([1,1,2]));;
+  },
+
+  'If no end, end should default to array.length': function() {
+    const array = [1,2,3];
+    let result = copyWithin(array, 1, 0);
+    eq(JSON.stringify(result), JSON.stringify([1,1,2]));;
+  },
+
+  'If start is provided and positive, it should begin copying from start': function() {
+    const array = [1,2,3];
+    let result = copyWithin(array, 1, 2);
+    eq(JSON.stringify(result), JSON.stringify([1,3,3]));;
+  },
+
+  'If start is negative, it should be taken as offset from the end of the array.': function() {
+    const array = [1,2,3];
+    let result = copyWithin(array, 0, -2);
+    eq(JSON.stringify(result), JSON.stringify([2,3,3]));
+  },
+
+  'If start is still negative after offset, copying should begin at 0.': function() {
+    const array = [1,2,3];
+    let result = copyWithin(array, 0, -10);
+    eq(JSON.stringify(result), JSON.stringify([1,2,3]));
+  },
+
+  'If start is greater than array.length, the array should be returned without copying.': function() {
+    const array = [1,2,3];
+    let result = copyWithin(array, 0, 10);
+    eq(JSON.stringify(result), JSON.stringify([1,2,3]));
+  },
+
+  'If end is provided and positive, it should copy up but not including array[end]': function() {
+    const array = [1,2,3];
+    let result = copyWithin(array, 1, 0, 2);
+    eq(JSON.stringify(result), JSON.stringify([1,1,2]));
+  },
+
+  'If end is negative, it should be taken as offset from the end of the array.': function() {
+    const array = [1,2,3];
+    let result = copyWithin(array, 2, 0, -2);
+    eq(JSON.stringify(result), JSON.stringify([1,2,1]));
+  },
+
+  'If end is still negative after offset, it should return the unchanged array.': function() {
+    const array = [1,2,3];
+    let result = copyWithin(array, 1, 0, -10);
+    eq(JSON.stringify(result), JSON.stringify([1,2,3]));
+  },
+
+  'If end is greater than array.length, copying should still finish at array[length-1]': function() {
+    const array = [1,2,3];
+    let result = copyWithin(array, 1, 0, 5);
+    eq(JSON.stringify(result), JSON.stringify([1,1,2]));
+  },
+
+  'It should work with array-like objects that contain a length property.': function() {
+    const array = {0:1, 1:2, 2:3, length: 3};
+    let result = copyWithin(array, 1, 0);
+    eq(JSON.stringify(result), JSON.stringify({0:1, 1:1, 2:2, length: 3}));
+  },
+
+  'It should only copy pre-existing 0-indexed values in array-like objects.': function() {
+    const array = {0: 0, 1: 1, 2: 2, 3:3, /*missing 4*/ 5:5, length: 6};
+    let result = copyWithin(array, 0, 3, 6);
+    eq(JSON.stringify(result), JSON.stringify({0:3, 1:5, 2:2, 3:3, 5:5, length: 6}));
+  },
+
+  'It should create indexes to paste values to as needed.': function() {
+    const array = {3:3, 4:4, 5:5, length: 6};
+    let result = copyWithin(array, 0, 3, 6);
+    eq(JSON.stringify(result), JSON.stringify({0:3, 1:4, 2:5, 3:3, 4:4, 5:5, length: 6}));
+  },
+
+  'If the argument passed to copyWithin() is a string primitive, undefined, or null,  TypeError should be thrown.': function() {
+    try {
+      var isTypeError = false;
+      copyWithin('hi');
+    } catch (e) {
+      isTypeError = e instanceof TypeError;
+    }
+    eq(isTypeError, true);
+
+    try {
+      isTypeError = false;
+      copyWithin(undefined);
+    } catch (e) {
+      isTypeError = e instanceof TypeError;
+    }
+    eq(isTypeError, true);
+    
+    try {
+      isTypeError = false;
+      copyWithin(null);
+    } catch (e) {
+      isTypeError = e instanceof TypeError;
+    }
+    eq(isTypeError, true);
+  },
+  
+  'If called on an object without a length property, it should return that object unchanged.': function(){
+    let obj = {0:1, 1:2}
+    let result = copyWithin(obj);
+    eq(result, obj)
+  },
+  
+  'If called on a Function, it should return that object unchanged.': function(){
+    function foo(){}
+    let result = copyWithin(foo, 1, 2, 5);
+    eq(result, foo);
+  },
+  
+  'If called on a String object, it should return that object unchanged.': function(){
+    let result = copyWithin(new String);
+    eq(result instanceof String, true);
+    eq(result.valueOf(), "");
+  },
+  
+  'If called on a Boolean object, it should return that object unchanged.': function(){
+    let result = copyWithin(new Boolean(true));
+    eq(result instanceof Boolean, true);
+    eq(result.valueOf(), true);
+  },
+
+  'If called on a number primitive, it should return that primitive converted to a number Object.': function(){
+    let result = copyWithin(8);
+    eq(result instanceof Number, true);
+    eq(result.valueOf(), 8);
+  },
+
+  'If called on a Boolean primitive, it should return that value converted to a boolean object.': function(){
+    let result = copyWithin(true);
+    eq(result instanceof Boolean, true);
+    eq(result.valueOf(), true);
+  }
+})
+</script>

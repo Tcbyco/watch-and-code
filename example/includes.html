@@ -1,0 +1,134 @@
+<script src="../simpletest.js"></script>
+<script>
+/* Description:
+Includes() returns true if the supplied array includes a specified
+element among its values, and returns false otherwise.
+
+Function Signature
+includes(array, element[, startingIndex])
+
+Return Value: 
+Boolean true or false.
+
+Example 1:
+includes([1,2,3], 2);
+>> true
+
+Example 2: with startingIndex
+includes([1,2,3], 2, 2);
+>> false
+
+Example 3: startingIndex > array.length, do not search the array.
+includes([1,2,3], 2, 5);
+>> false
+
+Example 4: if startingIndex is negative, 
+it is used as offset from the end of the array.
+includes([1,2,3], 2, -2);
+>> true 
+search began at index 1, which is 2 from the end.
+
+Example 5: If startingIndex is negative and 
+the offset is greater than array length, 
+the whole array is searched starting from index 0.
+includes([1,2,3], 2, -100);
+>> true
+
+Example 6: working with array-like objects.
+var arrayLikeObject = {
+  0: 'cat',
+  1: 'bat',
+  2: 'rat',
+  length: 3
+}
+
+includes(arrayLikeObject, 'bat');
+>> true
+*/
+
+function includes(array, elementToFind, optionalStartIndex) {
+  var startIndex = Number(optionalStartIndex);
+  var length = array.length;
+
+  if (startIndex < 0) {
+    startIndex = length + startIndex; 
+    if (startIndex < 0) {
+      startIndex = 0;
+    }
+  } 
+
+  if (isNaN(startIndex)) {
+    startIndex = 0;
+  }
+
+  for (var i = startIndex; i < length; i++) {
+    if (array[i] === elementToFind) {
+      return true;
+    }
+  }
+  
+  return false;
+}
+
+
+tests({
+  'It should accept three parameters: array, elementToFind, startingIndex.': function() {
+    var numberOfDeclaredParameters = includes.length;
+    eq(numberOfDeclaredParameters, 3);
+  },
+
+  'If elementToFind is processed during the search, includes() should return true.': function() {
+    var elementFound = includes([1], 1);
+    eq(elementFound, true);
+  },
+
+  'If elementToFind is not processed during the search, includes() should return false.': function() {
+    var elementFound = includes([2], 1);
+    eq(elementFound, false);
+  },
+
+  'If no startingIndex, it should search the whole array.': function() {
+    var searchedFirstElement = includes([1,2], 1);
+    var searchedLastElement = includes([1,2], 2);
+    eq(searchedFirstElement, true);
+    eq(searchedLastElement, true);
+  },
+
+  'If startingIndex, it should begin searching from startingIndex': function() {
+    var startedAtIndexZero = includes([1,2], 1, 1); 
+    eq(startedAtIndexZero, false);
+  },
+  
+  'If startingIndex > array.length, it should return false even if elementToFind is in the array.': function() {
+    var arrayWasSearched = includes([1], 1, 5);
+    eq(arrayWasSearched, false);
+  },
+  
+  'If startingIndex < 0, and its absolute value is < array.length, startingIndex should be taken as offset from the end of the array.': function() {
+    var skippedFirstElement = !includes([1,2], 1, -1);
+    eq(skippedFirstElement, true);
+  },
+
+  'If startingIndex < 0, and its absolute value is > array.length, it should search the entire array.': function() {
+    var entireArraySearched = includes([1,2], 1, -10);
+    eq(entireArraySearched, true);
+  },
+  
+  'It should work with array-like objects.': function() {
+    var arrayLikeObject = {
+      0: 1,
+      1: 2,
+      2: 'string',
+      length: 3
+    }
+
+    var canSearchNumber = includes(arrayLikeObject, 1);
+    var canSearchString = includes(arrayLikeObject, 'string');
+    var canCorrectlyAssignStartingIndex = !includes(arrayLikeObject, 2, 2); 
+    eq(canSearchNumber, true);
+    eq(canSearchString, true);
+    eq(canCorrectlyAssignStartingIndex, true);
+  }
+});
+
+</script>

@@ -1,0 +1,148 @@
+<script src="../simpletest.js"></script>
+<script>
+/*
+Description
+The reverse() method reverses an array in place. 
+The first array element becomes the last, and the last array element becomes the first.
+
+Function Signature
+reverse(array)
+
+Return value
+The mutated array.
+
+Example 1:
+let array = reverse([1,2,3,4])
+console.log(array);
+>>[4,3,2,1]
+
+Ex 2: when object length > number of 0-indexed values,
+reversal should begin by placing values at index length-1.
+Unused early indexes should be removed.
+
+let array = reverse({0:1, 1:2, 2:3, length: 6})
+console.log(array);
+>> {3: 3, 4: 2, 5: 1, length: 6}
+
+*/
+
+function reverse(array) {
+  if (typeof array === 'string') {
+      throw new TypeError('The first argument to reverse must be an array or array-like object.')
+      }
+  
+  array = Object.valueOf.call(array);
+
+  const arrCopy = [];
+  let i;
+  for (i = 0; i < array.length; i++) { // Could use .slice(), but avoiding unecessary array methods for this exercise.
+    arrCopy[i] = array[i];
+  }
+  
+  let lastIndex = array.length - 1;
+  for (i = lastIndex; i >= 0; i--) {
+    if (i in arrCopy) {
+      array[i] = arrCopy[lastIndex - i] // array loops back to front; copy loops front to back
+    } else {
+      delete array[i];
+    }
+    
+  }
+  return array;
+}
+
+tests({ 
+  'It should return the same array.': function() {
+    let array = [1,2,3];
+    let result = reverse(array);
+    eq(array, result);
+  },
+
+  'It should reverse the values of the array, with the original array[0] moving to array[length-1] and so on.': function() {
+    let array = [1,2,3];
+    reverse(array);
+    eq(JSON.stringify(array), JSON.stringify([3,2,1]));
+  },
+
+  'If called on an object without a length property, it should return that object without modifying it': function() {
+    let obj = {0:1, 1:2};
+    reverse(obj);
+    eq(JSON.stringify(obj), JSON.stringify({0:1, 1:2}));
+  },
+
+  'If called on a 0-indexed object with a length property, it should reverse the 0-indexed values.': function() {
+    let obj = {0:1, 1:2, length: 2};
+    reverse(obj);
+    eq(JSON.stringify(obj), JSON.stringify({0:2, 1:1, length: 2}));
+  },
+
+  'If object.length exceeds the number of 0-indexed values, it should delete unused early indexes.': function() {
+    let obj = {0:1, 1:2, length: 4};
+    reverse(obj);
+    eq(JSON.stringify(obj), JSON.stringify({2:2, 3:1, length: 4}));
+  },
+
+  'If the argument passed to reverse() is a string primitive, undefined, or null,  TypeError should be thrown.': function() {
+    try {
+      var isTypeError = false;
+      reverse('hi');
+    } catch (e) {
+      isTypeError = e instanceof TypeError;
+    }
+    eq(isTypeError, true);
+
+    try {
+      isTypeError = false;
+      reverse(undefined);
+    } catch (e) {
+      isTypeError = e instanceof TypeError;
+    }
+    eq(isTypeError, true);
+    
+    try {
+      isTypeError = false;
+      reverse(null);
+    } catch (e) {
+      isTypeError = e instanceof TypeError;
+    }
+    eq(isTypeError, true);
+  },
+  
+  'If called on an object without a length property, it should return that object unchanged.': function(){
+    let obj = {0:1, 1:2}
+    let result = reverse(obj);
+    eq(result, obj)
+  },
+  
+  'If called on a Function, it should return that object unchanged.': function(){
+    function foo(){}
+    let result = reverse(foo);
+    eq(result, foo);
+  },
+  
+  'If called on a String object, it should return that object unchanged.': function(){
+    let result = reverse(new String);
+    eq(result instanceof String, true);
+    eq(result.valueOf(), "");
+  },
+  
+  'If called on a Boolean object, it should return that object unchanged.': function(){
+    let result = reverse(new Boolean(true));
+    eq(result instanceof Boolean, true);
+    eq(result.valueOf(), true);
+  },
+
+  'If called on a number primitive, it should return that primitive converted to a number Object.': function(){
+    let result = reverse(8);
+    eq(result instanceof Number, true);
+    eq(result.valueOf(), 8);
+  },
+  
+  'If called on a Boolean primitive, it should return that value converted to a boolean object.': function(){
+    let result = reverse(true);
+    eq(result instanceof Boolean, true);
+    eq(result.valueOf(), true);
+  }
+})
+
+</script>

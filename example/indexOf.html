@@ -1,0 +1,103 @@
+<script src="../simpletest.js"></script>
+<script>
+/* Description:
+Returns the first index at which a 
+given element can be found in the array, or -1 if it is 
+not present.
+
+Function Signature
+indexOf(array, elementToFind[, optionalStartingIndex])
+
+Return Value: 
+Number.
+
+Example 1:
+indexOf([1,2,3], 1);
+>> 0
+
+Example 2: starting the search at index 1.
+indexOf([1,2,3], 1, 1);
+>> -1 
+*/
+
+function indexOf(array, elementToFind, optionalStartIndex){
+  var length = array.length;
+  var startIndex = Number(optionalStartIndex);
+  
+  if (!Array.isArray(array)) {
+    throw new TypeError('The first argument to indexOf must be an array.');
+  }
+
+  if (startIndex < 0) {
+    startIndex = length + startIndex;
+    if (startIndex < 0) {
+      startIndex = 0;
+    }
+  } else if (startIndex > 0) {
+      startIndex = startIndex;
+    } else { // in case of optionalStartIndex being undefined, null, NaN.
+    startIndex = 0; 
+  }
+
+  for (var i = startIndex; i < length; i++) {
+    if (array[i] === elementToFind) {
+      return i;
+    }
+  }
+
+  return -1
+}
+
+tests({
+  'If the first argument is not an array, TypeError should be thrown.': function() {
+    var isTypeError = false;
+    try {
+      indexOf('not an array', 1);
+    } catch (error) {
+      isTypeError = error instanceof TypeError;
+    }
+    eq(isTypeError, true);
+  },
+
+  'It should return a number': function() {
+    var result = indexOf([1,2], 1);
+    eq(typeof(result), 'number');
+  },
+
+  'If elementToFind is in the array, indexOf should return the first index of that element.': function() {
+    var result = indexOf([1,2], 2);
+    eq(result, 1);
+  },
+
+  'If elementToFind is not in the array, indexOf should return -1': function() {
+    var result = indexOf([1,2], 3);
+    eq(result, -1); 
+  },
+  
+  'If optionalStartIndex is provided, search should begin at that index': function() {
+    var result = indexOf([1,2,1], 1, 1);
+    eq(result, 2);
+  },
+
+  'It should convert optionalStartIndex to a number if it is a string': function() {
+    var result = indexOf([1,2], 2, '1');
+    eq(result, 1);
+  },
+
+  'If no optionalStartIndex, search should begin at index 0': function() {
+    var result = indexOf([1,2], 1);
+    eq(result, 0);
+  },
+
+  'If optionalStartIndex cannot be converted to a number, search should begin at index 0': function () {
+    var result = indexOf([1,2], 1, undefined);
+    eq(result, 0);
+  },
+
+  'If optionalStartIndex is a negative number, it is taken as the offset from the end of the array': function() {
+    var result = indexOf([1,2,3,4,1], 1, -2);
+    eq(result, 4);
+  }
+});
+
+</script>

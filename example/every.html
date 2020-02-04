@@ -1,0 +1,171 @@
+<script src="../simpletest.js"></script>
+<script>
+/*
+Description
+Tests whether all elements in the array pass the test implemented 
+by the provided callback. It returns a Boolean value. 
+
+Function Signature:
+every(array, callback(element[, index[, array]])[, thisArg])
+
+Parameters:
+array
+callback
+ currentElement
+ currentIndex
+ array
+thisArg (optional)
+
+Return Value: Boolean.
+
+Example 1 - Standard use case
+every([1,2], function(number){
+  return number === 2;
+});
+>> returns false
+
+Example 2 - Sparse Array Behavior
+every([1, , 3], isOdd(number){
+ return number % 2 === 1;
+});
+>> Will skip empty index and return true.
+*/
+function every(array, callback, optionalThis) {
+  var length = array.length;
+  var callback = callback;
+  
+  // If callback not a function, throw TypeError.
+  if (!(typeof callback === 'function')) {
+    throw new TypeError('The second argument to every() must be a function');
+  }
+
+  // If the array is empty, or contains only holes, return true.
+  if (length === 0 || Object.keys(array).length === 0) {
+    return true;
+  }
+
+  if (optionalThis) {
+    callback = callback.bind(optionalThis);
+  } 
+
+  for (var i = 0; i < length; i++) {
+    // Proceed if index not empty
+    if (i in array && !callback(array[i], i, array)) {
+      return false;
+    }
+  }
+  // Nothing was false. Return true.
+  return true;
+}
+
+tests ({
+  'It should run the callback array.length times, if callback returns true for all elements.': function() {
+    var numberOfTimesCallbackHasRun = 0;
+    every([1,2], function(number){
+      numberOfTimesCallbackHasRun++;
+      return true;
+    });
+    eq(numberOfTimesCallbackHasRun, 2);
+  },
+
+  'It should pass in the ith element as the first argument to the callback.': function() {
+    every([1], function(number) {
+      eq(number, 1);
+    });
+  },
+
+  'It should pass in i as the second argument to the callback.': function() {
+    every([1], function(number, index) {
+      eq(index, 0);
+    });
+  },
+
+  'It should pass in the array as the third argument to the callback.': function() {
+    var testArray = [1];
+    every(testArray, function(number, index, originalArray) {
+      eq(originalArray, testArray);
+    });
+  },
+
+  'It should ignore elements pushed to the array during callback.': function() {
+    var numberOfTimesCallbackHasRun = 0;
+    every([1], function(number, index, array){
+      numberOfTimesCallbackHasRun++;
+      // This added item should not be iterated over, despite callback returning true.
+      array[1] = ['I should not be passed to callback'];
+      return true;
+    });
+    eq(numberOfTimesCallbackHasRun, 1);
+  },
+
+  'It should take an optional this as the third argument to every().': function() {
+    every([1], function() {
+      eq(this.text === 'I should be accessible inside callback', true)
+    }, {text: 'I should be accessible inside callback'});
+  },
+
+  'It should return true if every element returns true after being passed to callback.': function() {
+    var returnValue = every([2,2,2], function(number) {
+      return number === 2;
+    });
+    eq(returnValue, true);
+  },
+
+  'It should return false if any element returns false after being passed to callback.': function() {
+    var returnValue = every([1,2], function(number) {
+      return number === 2;
+    });
+    eq(returnValue, false);
+  },
+
+  'It should not run the callback on empty indexes.': function() {
+    var numberOfTimesCallbackHasRun = 0;
+    every([1,2, , undefined, null], function(){
+      numberOfTimesCallbackHasRun++;
+      return true;
+    });
+    eq(numberOfTimesCallbackHasRun, 4);
+  },
+
+  'It should not mutate the original array': function() {
+    var testArray = [1];
+    find(testArray, function() {});
+    eq(testArray.length, 1);
+    eq(testArray[0], 1);
+  },
+
+  'If the second argument to every() is not a function, TypeError should always be thrown.': function() {
+    try {
+      // Empty array should return true unless second arg is not a function.
+      every([], 'not a function');
+    } catch (e) {
+      var instanceofTypeError = e instanceof TypeError;
+    }
+    eq(instanceofTypeError, true);
+  },
+
+  'It should return true if the array length === 0': function(){
+    var returnValue = every([], function(number) {
+      // untrue
+      return number === 1;
+    });
+    // should return true anyway
+    eq(returnValue, true);
+  },
+
+  'It should return true if the array has length > 0 but only empty indexes': function(){
+    var returnValue = every([, , , ], function(number) {
+      return number === 1;
+    });
+    eq(returnValue, true);
+  },
+
+  'If an existing array element is changed before being passed to callback, the new value should be used.' : function() {
+    var returnValue = every([1,2], function(element, index, originalArray) {
+      originalArray[1] = 1;
+      return element === 1;
+    });
+    eq(returnValue, true);
+  }
+})
+</script>

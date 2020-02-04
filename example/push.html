@@ -1,0 +1,218 @@
+<script src="../simpletest.js"></script>
+<script>
+/* The push() method adds one or more elements to the end 
+of an array and returns the new length of the array.
+
+Function signature
+push(array, element1[, ...[, elementN]])
+ 
+Return value 
+A number equal to the length of the array after it has been mutated.
+
+This implementation features some of Kevin Moorehouse's tests, which were added during 
+review. They found several use cases I had not accounted for, so the related tests remain.
+His version can be found here: 
+https://github.com/kevinmorehouse/arraymethods-rewritten/blob/master/jstinytest-master/Array%20Methods/Mutators/push/myPush.html
+*/
+
+function push(array) {
+  // Error handling.
+  if (typeof array === 'number' || typeof array === 'boolean') {
+      return 0;
+  } 
+  
+  if (typeof array === 'undefined' || 
+      typeof array === 'string' || 
+      typeof array === 'function' || 
+      array instanceof String ||
+      !array) { // this is to check for null
+    throw new TypeError('The first argument to push() must be an array or array-like object');
+  } else {      
+    // Create and adjust length in the case of array-like object.
+    if (+array.length) { 
+      array.length = Math.floor(array.length);
+      if (array.length < 0) { 
+      array.length = 0;
+      }
+    } else {
+      array.length = 0;
+    }
+      for (var i = 0; i + 1 < arguments.length; i++) {
+        array[array.length] = arguments[i + 1];
+        
+        if (array instanceof Array === false) {
+          array.length++;
+        }
+      }
+    }
+  return array.length;
+}
+
+tests({
+  'It should return the length of the array.': function() {
+    var length = push([5]);
+    eq(length, 1);
+  },
+  'All arguments after the first should be added to the end of the array': function() {
+    var array = [1, 2];
+    var returnValue = push(array, 3, 4);
+    eq(returnValue, 4);
+    eq(array[3], 4);
+  },
+  'It should accept array-like objects': function() {
+    var testObject = {0:1, length: 1};
+    var length = push(testObject, 2);
+
+    eq(testObject[1], 2);
+  },
+  'If using an array-like object, it should correctly increment length': function() {
+    var testObject = {0:1, 1:2, length: 2};
+    var length = push(testObject, 3);
+
+    eq(testObject.length, 3);
+    eq(length, 3);
+    eq(testObject[2], 3);
+  },
+  'If using an array-like object, and .length cannot be converted to a number, it should use index 0.': function() {
+    var testObject = {0:1, 1:2, length: 'unknown'};
+    var length = push(testObject, 3);
+
+    eq(testObject.length, 1);
+    eq(length, 1);
+    eq(testObject[0], 3);
+    eq(testObject[1], 2);
+  },
+  'If the length property of the original array or object is > 0 but not an integer, it should be rounded down to the nearest integer.': function() {
+    var length = push({0:1, length: 1.5});
+    eq(length, 1);
+  },  
+  'It should return a whole number.': function () {
+    var returnedValue = push([1], 0);
+    eq(Number.isInteger(returnedValue), true);
+  },
+  'If additional arguments are provided, it should return a whole number equal to the length property of the original array or object, plus the number of provided elements.': function () {
+    var testArray = [];
+    var returnedValue = push(testArray, 0);
+    eq(testArray.length, 1);
+  },
+  'If no additional arguments are provided, it should return a number equal to the length property of the original array or object.': function () {
+    var testArray = [];
+    var returnedValue = push(testArray);
+    eq(testArray.length, 0);
+  },
+  'If additional arguments are provided, they should be added to the original array starting from the index that is equal to the original length property.': function () {
+    var testArray = [0];
+    var originalTestArrayLength = testArray.length;
+    push(testArray, 1);
+    eq(testArray[originalTestArrayLength], 1);
+  },
+  'If additional arguments are provided, they should be added to the original array or object in the order in which they were provided.': function () {
+    var testArray = [0];
+    push(testArray, 1, 2);
+    eq(testArray[1], 1);
+    eq(testArray[2], 2);
+  },
+  'If additional arguments are provided are primitive values, they should be appended unchanged to the original array or object.': function () {
+    var testArray = [0];
+    push(testArray, 1, 'two', false);
+    eq(testArray[0], 0);
+    eq(testArray[1], 1);
+    eq(testArray[2], 'two');
+    eq(testArray[3], false);
+  },
+  'If additional arguments are objects, it should append object references (and not the objects themselves) to the original array or object.': function () {
+    var testArray = [];
+    var testObject = { changed: false };
+    push(testArray, testObject);
+    eq(testArray[0].changed, false);
+    testObject.changed = true;
+    eq(testArray[0].changed, true);
+  },
+  'It should push to non-array objects.': function () {
+    var testObject = {
+      0: 0,
+      length: 1
+    }
+    push(testObject, 1);
+    eq(testObject[1], 1);
+  },
+  'If the length property of the original array or object is undefined, the length property should be created and set to 0.': function () {
+    var testObject = {
+      0: 0
+    }
+    eq(testObject.length, undefined);
+    push(testObject);
+    eq(testObject.length, 0);
+  },
+  'If the length property of the original array or object is not of numeric data type, the length property should be converted to a number if possible.': function () {
+    var testObject = {
+      0: 0,
+      length: true
+    }
+    eq(typeof testObject.length, 'boolean');
+    push(testObject);
+    eq(typeof testObject.length, 'number');
+    eq(testObject.length, 1);
+  },
+  'If the length property of the original array or object is NaN, or otherwise cannot be coerced to a number, the length property should be set to 0.': function () {
+    var testObject = {
+      0: 1,
+      length: "Can't be changed to a number"
+    }
+    eq(Number.isNaN(+testObject.length), true);
+    push(testObject);
+    eq(testObject.length, 0);
+  },
+  'If the first argument to push is a function object, it should throw a TypeError.': function () {
+    function foo() {
+      console.log("Don't push me");
+    }
+    try {
+      push(foo);
+    } catch (e) {
+      var isTypeError = e instanceof TypeError;
+    }
+    eq(isTypeError, true);
+  },
+  'If the first argument to push is a primitive string, it should throw a TypeError.': function () {
+    try {
+      push('string');
+    } catch (e) {
+      var isTypeError = e instanceof TypeError;
+    }
+    eq(isTypeError, true);
+  },
+  'If the first argument to push is a String object, it should throw a TypeError.': function () {
+    try {
+      push(new String);
+    } catch (e) {
+      var isTypeError = e instanceof TypeError;
+    }
+    eq(isTypeError, true);
+  },
+  'If the first argument to push is a null value, it should throw a TypeError.': function () {
+    try {
+      push(null);
+    } catch (e) {
+      var isTypeError = e instanceof TypeError;
+    }
+    eq(isTypeError, true);
+  },
+  'If the first argument to push is an undefined value, it should throw a TypeError.': function () {
+    try {
+      push(undefined);
+    } catch (e) {
+      var isTypeError = e instanceof TypeError;
+    }
+    eq(isTypeError, true);
+  },
+  'If the first argument to push is a number (or other value of numeric type), it should return 0.': function () {
+    var returnedValue = push(1);
+    eq(returnedValue, 0);
+  },
+  'If the first argument to push is a boolean, it should return 0.': function () {
+    var returnedValue = push(true);
+    eq(returnedValue, 0);
+  }
+})
+</script>

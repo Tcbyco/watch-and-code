@@ -1,0 +1,159 @@
+<script src="../simpletest.js"></script>
+<script>
+/* Description:
+Returns the value of the first index in the array 
+that satisfies the provided testing callback. 
+Otherwise undefined is returned. 
+
+Function Signature
+findIndex(array, callback(element[, index[, array]])[, thisArg])
+
+Parameters
+array
+callback
+  currentElement
+  currentIndex
+  array
+thisArg (optional)
+
+Return Value
+The passing index or -1.
+
+Example 1 - Standard use case
+findIndex([1,2], function(number){
+  return number === 2;
+});
+>> returns 1
+
+Example 2 - Sparse Array Behavior
+findIndex([1, , 3], function(){});
+>> Will iterate over the empty index as well. */
+
+function findIndex(array, callback, optionalThis) {
+  var length = array.length;
+  var callback = callback;
+
+  if (!Array.isArray(array)) {
+    throw new TypeError('The first argument to findIndex() must be an array');
+  }
+
+  if (optionalThis) {
+    callback = callback.bind(optionalThis);
+  } 
+
+  for (var i = 0; i < length; i++) {
+    if (callback(array[i], i, array)) {
+      return i;
+    }
+  }
+  return -1;
+}
+
+tests ({
+  'If the first argument to findIndex is not an array, TypeError should be thrown': function() {
+    try {
+      findIndex('not an array', function() {});
+    } catch (e) {
+      var isTypeError = e instanceof TypeError;
+    }
+    eq(isTypeError, true);
+  },
+
+  'If the second argument to findIndex is not a function, TypeError should be thrown.': function() {
+    try {
+      findIndex([1], 'not a function');
+    } catch (e) {
+      var isTypeError = e instanceof TypeError;
+    }
+    eq(isTypeError, true);
+  },
+
+  'It should run the callback array.length times.': function() {
+    var numberOfTimesCallbackHasRun = 0;
+    findIndex([1,2], function(){
+      numberOfTimesCallbackHasRun++;
+    });
+    eq(numberOfTimesCallbackHasRun, 2);
+  },
+
+  'It should pass in the ith element as the first argument to the callback.': function() {
+    findIndex([1], function(number) {
+      eq(number, 1);
+    });
+  },
+
+  'It should pass in i as the second argument to the callback.': function() {
+    findIndex([1], function(number, index) {
+      eq(index, 0);
+    });
+  },
+
+  'It should pass in the array as the third argument to the callback.': function() {
+    var testArray = [1];
+    findIndex(testArray, function(number, index, originalArray) {
+      eq(originalArray, testArray);
+    });
+  },
+
+  'It should take an optional this as the third argument to findIndex().': function() {
+    findIndex([1], function() {
+      eq(this.text === 'I should be accessible inside callback', true)
+    }, {text: 'I should be accessible inside callback'});
+  },
+
+  'It should return the index of the first element that satisfies the condition of the callback.': function() {
+    var returnValue = findIndex([1,2], function(number) {
+      return number === 2;
+    });
+    eq(returnValue, 1);
+  },
+
+  'It should not process further elements once the callback returns true': function() {
+    var numberOfTimesCallbackHasRun = 0;
+    findIndex([1,2], function(number){
+      numberOfTimesCallbackHasRun++;
+      return number === 1;
+    });
+    eq(numberOfTimesCallbackHasRun, 1);
+  },
+
+  'It should return -1 if no element in the array satisfies the callback.': function() {
+    var returnValue = findIndex([1,2], function(number) {
+      return number === 3;
+    });
+    eq(returnValue, -1);
+  },
+
+  'It should run the callback on empty indexes.': function() {
+    var numberOfTimesCallbackHasRun = 0;
+    findIndex([1,2, , undefined, null], function(){
+      numberOfTimesCallbackHasRun++;
+    });
+    eq(numberOfTimesCallbackHasRun, 5);
+  },
+
+  'It should not pass in elements pushed to the array during callback.': function() {
+    var numberOfTimesCallbackHasRun = 0;
+    findIndex([1], function(number, index, array){
+      numberOfTimesCallbackHasRun++;
+      array[1] = ['I should not be passed to callback'];
+    });
+    eq(numberOfTimesCallbackHasRun, 1);
+  },
+
+  'If an existing array element is changed before being passed to callback, the new value should be used.' : function() {
+    var returnValue = findIndex([1,2], function(element, index, originalArray) {
+      originalArray[1] = 0;
+      return element === 0;
+    });
+    eq(returnValue, 1);
+  },
+
+  'It should not mutate the original array': function() {
+    var testArray = [1];
+    find(testArray, function() {});
+    eq(testArray.length, 1);
+    eq(testArray[0], 1);
+  }
+})
+</script>

@@ -1,0 +1,166 @@
+<script src="../simpletest.js"></script>
+<script>
+/*
+Description
+Removes and returns the first element in an array or array-like object. Remaining
+values in the array are each moved down 1 index and array.length is decremented
+by 1.  
+
+Functional Signature
+shift(array)
+
+Return Value
+The removed value, or undefined if nothing was removed.
+
+Examples
+var array = [1,2]
+shift(array)
+>> [1]
+console.log(array)
+>[2]
+
+var array = []
+shift(array)
+>> undefined
+console.log(array)
+>[]
+
+*/
+
+function shift(array) {
+  if (typeof array === 'undefined' ||
+      array === null ||
+      typeof array === 'string' ||
+      typeof array === 'number' ||
+      typeof array === 'symbol'||
+      typeof array === 'function') {
+        throw new TypeError('Shift() will only accept an argument of type array, or an array-like object.')
+      }
+
+  if (array.length > 0) {
+    array.length = Math.floor(array.length);
+    let firstValue = array[0];
+    for (let i = 0; i < array.length; i++) {
+      array[i] = array[i + 1]
+    }
+    delete array[array.length - 1]
+    array.length -= 1;
+    return firstValue;
+  } else {
+    array.length = 0;
+  }
+}
+
+tests({
+  'If the first argument is not an array or array-like object, it should throw TypeError.': function () {
+    try {
+      shift('hi');
+    } catch (e) {
+      var isTypeError = e instanceof TypeError;
+      eq(isTypeError, true);
+    }
+    try {
+      shift(undefined);
+    } catch (e) {
+      var isTypeError = e instanceof TypeError;
+      eq(isTypeError, true);
+    }
+    try {
+      shift(null);
+    } catch (e) {
+      var isTypeError = e instanceof TypeError;
+      eq(isTypeError, true);
+    }
+    try {
+      shift(8);
+    } catch (e) {
+      var isTypeError = e instanceof TypeError;
+      eq(isTypeError, true);
+    }
+    try {
+      shift(function(){});
+    } catch (e) {
+      var isTypeError = e instanceof TypeError;
+      eq(isTypeError, true);
+    }
+    try {
+      shift(true);
+    } catch (e) {
+      var isTypeError = e instanceof TypeError;
+      eq(isTypeError, true);
+    }
+  },
+
+  'It should return undefined if array is empty.': function () {
+  var returnValue = shift([])
+  eq(returnValue, undefined);
+  },
+
+  'It should return undefined if the array-like object is empty.': function () {
+    var returnValue = shift({});
+    eq(typeof returnValue, 'undefined')
+  },
+
+  'If array.length > 0, it should remove the first value in the array and shift all remaining values down 1 index.': function () {
+    var testArray = [1,2,3]
+    shift(testArray);
+    eq(JSON.stringify(testArray), JSON.stringify([2,3]));
+  },
+
+  'If array.length > 0, it should return the value at array[0].': function () {
+    var removedElement = shift([1,2]);
+    eq(removedElement, 1);
+  },
+
+  'If array.length > 0, it should decrement array.length by 1.': function () {
+    var testArray = [1,2]
+    shift(testArray);
+    eq(testArray.length, 1);
+  },
+
+  'If the first arg is an array-like object, it should remove the value at property obj[0].': function () {
+    var testObj = {0:1, length:1}
+    shift(testObj);
+    eq(0 in testObj, false);
+  },
+
+  'If the first arg is an array-like object, and an element is removed by shift(), it should return the removed element.': function () {
+    var testObj = {0:1, length: 1}
+    returnValue = shift(testObj);
+    eq(returnValue, 1);
+  },
+
+  'If an element was removed from the array-like object, object.length should be decremented by 1.': function () {
+    var testObj = {0:1, length: 1}
+    shift(testObj);
+    eq(testObj.length, 0);
+  },
+
+  'If obj.length is not a number, it should be coerced to one if possible.' : function() {
+    var testObj = {0:1, length: '1'}
+    shift(testObj);
+    eq(testObj.length, 0);
+  },
+
+  'If obj.length is > 0 and not an integer, it should be rounded down before decrementing.' : function() {
+    var testObj = {0:1, length: 1.5}
+    shift(testObj);
+    eq(testObj.length, 0); // If rounding failed, this would return 0.5
+  },
+
+  'If obj.length cannot be converted to an integer, it should be set to 0' : function() {
+    var testObj = {0:1, length: "Can't be coerced to number"}
+    var returnValue = shift(testObj);
+    eq(testObj.length, 0);
+    eq(returnValue, undefined);
+  },
+
+  'If obj.length is less than 0, it should be set to 0' : function() {
+    var testObj = {0:1, length: -1}
+    var returnValue = shift(testObj);
+    eq(JSON.stringify(testObj), JSON.stringify({0:1, length: 0}))
+    eq(returnValue, undefined);
+  },
+  
+})
+</script>
