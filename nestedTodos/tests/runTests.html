@@ -1,0 +1,237 @@
+<script src="simpletest.js"></script>
+<script src="../app.js"></script>
+<script>
+
+// can the app still function if I run it as an IIFE and only expose
+// one library? Well, yes, because it should all work on event listeners.
+// But that does make it harder to test.
+
+tests({
+  'It should store the todos array in localStorage': function () {
+    var todoList = JSON.parse(localStorage.getItem('todos'));
+    var todoListIsArray = Array.isArray(todoList);
+    eq(todoListIsArray, true);
+  },
+
+  'It should be able to add todos': function () {
+    var originalTodosLength = todoList.todos.length;
+    todoList.addTodo();
+    var lengthAfterAddingTodo = todoList.todos.length;
+    eq(lengthAfterAddingTodo, originalTodosLength + 1);
+  },
+
+  'It should take and store todo text when adding todos.': function() {
+    todoList.addTodo('This is the todo text.');
+    var todos = todoList.todos;
+    var length = todos.length;
+    var newTodo = todos[length-1];
+    eq(newTodo.text, 'This is the todo text.');
+  },
+
+  'It should create an id property when adding todos.': function() {
+    todoList.addTodo('I should have an id');
+    var todos = todoList.todos;
+    var lastEntry = todos[todos.length - 1];
+    var idIsNumber = typeof lastEntry.id === 'number';
+    eq(idIsNumber, true);
+  },
+
+  'It should be able to delete todos': function () {
+    var beforeLength = todoList.todos.length;
+    todoList.todos.push({
+      'text':'delete this',
+      'id': util.makeId()
+    })
+    todoList.deleteTodo(todoList.todos.length - 1)
+    var afterLength = todoList.todos.length;
+    eq(beforeLength, afterLength);
+  },
+  
+  'It should be able to change todos': function () {
+    var todos = todoList.todos;
+    todos.push({
+      'text':'change this',
+      'id': util.makeId()
+    });
+    var index = todos.length - 1
+    todoList.changeTodo(index, 'changed');
+    var newText = todos[index].text;
+    eq('changed', newText);
+  },
+
+  'It should set todo.completed to false when adding todos': function () {
+    var todos = todoList.todos;
+    todoList.addTodo('I am incomplete');
+    var index = todos.length - 1;
+    var completed = todos[index].completed;
+    eq(true, typeof completed === 'boolean');
+    eq(false, completed);
+  },
+  
+  'It should be able to toggle the completed status of todos': function () {
+    var todos = todoList.todos;
+    todos.push({
+      'text':'toggle this todo',
+      'id': util.makeId(),
+      'completed': false
+    });
+    var index = todos.length - 1
+    todoList.toggleCompleted(index);
+    var isCompleted = todos[index].completed;
+    eq(true, isCompleted);
+  },
+  
+  'It should be able to toggle all todos at once': function () {
+    fail();
+  },
+
+  'It should be able to display todos': function () {
+    fail();
+  },
+  
+  'It should have a button for displaying todos': function () {
+    fail();
+  },
+  
+  'It should have a button for toggling todos': function () {
+    fail();
+  },
+  
+  'It should have a button for changing todos': function () {
+    fail();
+  },
+  
+  'Clicking the buttons should run their associated methods': function () {
+    fail();
+  },
+  
+  'It should have a field to enter todos': function () {
+    fail();
+  },
+  
+  'There should be a <li> for every todo': function () {
+    fail();
+  },
+  
+  'Each <li> should contain todoText': function () {
+    fail();
+  },
+
+  'It should have a delete button for each todo': function() {
+    fail();
+  },
+
+  'Clicking the delete button should delete that todo': function(){
+    fail();
+  },
+  
+  'Double clicking a todo should allow you to edit it.': function () {
+    fail();
+  },
+  
+  'It should cross out completed todos': function () {
+    fail();
+  },
+  
+  'Pressing ENTER when the cursor is focused on a non-empty input field should add that todo': function () {
+    fail();
+  },
+  
+  'Pressing ENTER when the cursor is focused on a todo should shift the cursor to a new empty todo below the current one': function () {
+    fail();
+  },
+  
+  'Pressing TAB at the beginning or end of a todotext input should indent that todo.': function () {
+    fail();
+  },
+  
+  'Indenting a todo should also indent any nested todos at the same time.': function () {
+    fail();
+  },
+  
+  '': function () {
+    fail();
+  },
+  
+  '': function () {
+    fail();
+  },
+  
+  '': function () {
+    fail();
+  },
+  
+  '': function () {
+    fail();
+  },
+  
+  '': function () {
+    fail();
+  },
+  
+  '': function () {
+    fail();
+  },
+  
+  '': function () {
+    fail();
+  },
+  
+  '': function () {
+    fail();
+  },
+  
+  '': function () {
+    fail();
+  },
+  
+  '': function () {
+    fail();
+  },
+  
+  '': function () {
+    fail();
+  },
+  
+  '': function () {
+    fail();
+  },
+  
+  '': function () {
+    fail();
+  },
+  
+  '': function () {
+    fail();
+  },
+  
+  '': function () {
+    fail();
+  },
+  
+  '': function () {
+    fail();
+  },
+  
+  '': function () {
+    fail();
+  },
+  
+  '': function () {
+    fail();
+  },
+  
+  '': function () {
+    fail();
+  },
+  
+  '': function () {
+    fail();
+  },
+  
+  '': function () {
+    fail();
+  }
+
+});
+</script>
