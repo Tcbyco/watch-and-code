@@ -82,156 +82,19 @@ tests({
   },
   
   'It should be able to toggle all todos at once': function () {
-    fail();
-  },
-
-  'It should be able to display todos': function () {
-    fail();
-  },
-  
-  'It should have a button for displaying todos': function () {
-    fail();
-  },
-  
-  'It should have a button for toggling todos': function () {
-    fail();
-  },
-  
-  'It should have a button for changing todos': function () {
-    fail();
-  },
-  
-  'Clicking the buttons should run their associated methods': function () {
-    fail();
-  },
-  
-  'It should have a field to enter todos': function () {
-    fail();
-  },
-  
-  'There should be a <li> for every todo': function () {
-    fail();
-  },
-  
-  'Each <li> should contain todoText': function () {
-    fail();
-  },
-
-  'It should have a delete button for each todo': function() {
-    fail();
-  },
-
-  'Clicking the delete button should delete that todo': function(){
-    fail();
-  },
-  
-  'Double clicking a todo should allow you to edit it.': function () {
-    fail();
-  },
-  
-  'It should cross out completed todos': function () {
-    fail();
-  },
-  
-  'Pressing ENTER when the cursor is focused on a non-empty input field should add that todo': function () {
-    fail();
-  },
-  
-  'Pressing ENTER when the cursor is focused on a todo should shift the cursor to a new empty todo below the current one': function () {
-    fail();
-  },
-  
-  'Pressing TAB at the beginning or end of a todotext input should indent that todo.': function () {
-    fail();
-  },
-  
-  'Indenting a todo should also indent any nested todos at the same time.': function () {
-    fail();
+    var todos = todoList.todos;
+    todos.forEach(function(todo){
+      todo.completed = false;
+    })
+    todoList.toggleAll();
+    todos.forEach(function(todo) {
+      eq(true, todo.completed);
+    });
   },
   
   '': function () {
     fail();
   },
-  
-  '': function () {
-    fail();
-  },
-  
-  '': function () {
-    fail();
-  },
-  
-  '': function () {
-    fail();
-  },
-  
-  '': function () {
-    fail();
-  },
-  
-  '': function () {
-    fail();
-  },
-  
-  '': function () {
-    fail();
-  },
-  
-  '': function () {
-    fail();
-  },
-  
-  '': function () {
-    fail();
-  },
-  
-  '': function () {
-    fail();
-  },
-  
-  '': function () {
-    fail();
-  },
-  
-  '': function () {
-    fail();
-  },
-  
-  '': function () {
-    fail();
-  },
-  
-  '': function () {
-    fail();
-  },
-  
-  '': function () {
-    fail();
-  },
-  
-  '': function () {
-    fail();
-  },
-  
-  '': function () {
-    fail();
-  },
-  
-  '': function () {
-    fail();
-  },
-  
-  '': function () {
-    fail();
-  },
-  
-  '': function () {
-    fail();
-  },
-  
-  '': function () {
-    fail();
-  }
 
 });
 </script>
