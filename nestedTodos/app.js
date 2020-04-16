@@ -1,3 +1,13 @@
+/*global Handlebars */
+
+Handlebars.registerHelper('eq', function (a, b, options) {
+  return a === b ? options.fn(this) : options.inverse(this);
+});
+
+const ENTER_KEY = 13;
+const ESCAPE_KEY = 27;
+const TAB_KEY = 9;
+
 var util = {
   'id': 0,
   makeId() {
@@ -10,13 +20,57 @@ var util = {
   },
 
   getTodos() {
-    localStorage.getItem('todos');
+    todoList.todos = JSON.parse(localStorage.getItem('todos'));
+    if (!todoList.todos) {
+      todoList.todos = [];
+    }
+  },
+
+  init() {
+    this.getTodos();
+    // generate HTML templates
+    var todoTemplate = document.getElementById('todo-template').innerText;
+    view.todoTemplate = Handlebars.compile(todoTemplate);
+    
+    var footerTemplate = document.getElementById('footer-template').innerText;
+    view.footerTemplate = Handlebars.compile(footerTemplate);
+    
+    handlers.setUpEventListeners();
+    view.display();
+  },
+
+  indexFromEle(element, todoArray) {
+    // This must account for nested todos.
+
+/*  var id = the dataset 'id' from the li parent/ancestor of element;
+    var todos = todoList.todos;
+    var i = todos.length;
+
+    while (i--) {
+      if (todos[i].id === id) {
+        return todo object reference;
+      } 
+
+      if (todos[i].subTodos) {
+        return indexFromEle(element, todos[i].subTodos); 
+      }
+      
+    }
+    */
+    var id = Number(element.closest('li').dataset.id);
+		var todos = todoList.todos;
+    var i = todos.length;
+    
+    while (i--) {
+			if (todos[i].id === id) {
+        return i;			
+      }
+		}
   }
 }
 
-var todoList = {
-  todos: [],
-  todoFilter: 'all', /* eventually this will refer to current web address*/
+var todoList = { // is this really the list? Better name?
+  todoFilter: 'all', 
   
   addTodo(text) {
     this.todos.push({
@@ -24,23 +78,39 @@ var todoList = {
       'id': util.makeId(),
       'completed': false  
     });
+
+    view.display(this.todoFilter);
   },
 
-  deleteTodo(index) {
+  deleteTodo(event) {
+    var element = event.target;
+    var index = util.indexFromEle(element);
     this.todos.splice(index, 1);
+
+    util.storeTodos();
+    view.display();
   },
 
   deleteCompleted() {
     var activeTodos = this.filterTodos('active');
     this.todos = activeTodos;
+    util.storeTodos();
+    view.display();
   },
 
   changeTodo(index, newText) {
     this.todos[index].text = newText;
   },
 
-  toggleCompleted(index) {
+  toggleCompleted(e) {
+    /* This must factor in nested todos.
+    var index = util.indexFromEle(e);
+    var todos = this.todos;
+     */
+    var element = e.target;
+    var index = util.indexFromEle(element);
     this.todos[index].completed = !this.todos[index].completed;
+    view.display();
   },
 
   toggleAll() {
@@ -59,9 +129,12 @@ var todoList = {
     this.todos.forEach(function(todo) {
       todo.completed = toggleValue;
     });
+
+    util.storeTodos();
+    view.display();
   },
   
-  filterTodos(filter) {
+  filterTodos(filter) { // deprecated
     // set the filter to be whatever we passed in. Should this be here?
     this.todoFilter = filter;
     
@@ -86,54 +159,157 @@ var todoList = {
     return filteredTodos;
   },
 
+  getActiveTodos() {
+    return this.todos.filter(function(todo){
+      return !todo.completed;
+    })
+  }
+
 }
 
 var handlers = {
   setUpEventListeners() {
     // grab buttons that need event listeners.
-    var toggleAllButton = document.querySelector('#toggleAll');
-    var deleteCompletedButton = document.querySelector('#deleteCompleted');
-    var filterAllButton = document.querySelector('#filterAll');
-    var filterActiveButton = document.querySelector('#filterActive');
-    var filterCompletedButton = document.querySelector('#filterCompleted');
-
+    var toggleAllButton = document.getElementById('toggle-all');
+    var footer = document.getElementById('footer');
+    var newTodoField = document.getElementById('new-todo');
+    var todoUl = document.getElementById('todo-list');
 
     toggleAllButton.addEventListener('click', todoList.toggleAll.bind(todoList));
-    deleteCompletedButton.addEventListener('click', todoList.deleteCompleted.bind(todoList));
-    filterAllButton.addEventListener('click', view.display.bind(view, 'all'));
-    filterActiveButton.addEventListener('click', view.display.bind(view, 'active'));
-    filterCompletedButton.addEventListener('click', view.display.bind(view, 'completed'));
+    newTodoField.addEventListener('change', handlers.addTodoAndResetInput.bind(this));
+    
+    todoUl.addEventListener('click', function(event) {
+      if (event.target.className === 'delete') {
+        todoList.deleteTodo(event);
+      }
+    }.bind(this));
+
+    todoUl.addEventListener('change', function(event) {
+      if (event.target.className === 'toggle') {
+        todoList.toggleCompleted(event);
+      }
+    }.bind(this));
+
+    todoUl.addEventListener('dblclick', function(event){
+      if (event.target.nodeName === 'LABEL') {
+        view.showEditBox(event);
+      }
+    }.bind(view));
+
+    todoUl.addEventListener('keyup', function(event){
+      if (event.target.className === 'edit') {
+        handlers.checkIfExitingEditMode(event);
+      }
+    }.bind(this));
+
+    todoUl.addEventListener('focusout', function(event){
+      if (event.target.className === 'edit') {
+        handlers.saveOrDiscardEdits(event);
+      }
+    }.bind(this));
+
+    footer.addEventListener('click', function(event){
+      if (event.target.nodeName === 'BUTTON') {
+        todoList.deleteCompleted();
+      }
+    }.bind(todoList));
+  },
+
+  handleEdits(e) { // e = focusout
+    var element = e.target;
+    var newText = element.value;
+    var index = util.indexFromEle(element);
+    var todos = todoList.todos;
+
+    if (newText === '') {
+      todoList.deleteTodo(todoIndex);
+      
+      util.storeTodos();
+      view.display();
+    } else {
+      todos[index].text = newText;
+      util.storeTodos();
+      view.display();
+    }
+  },
+
+  checkIfExitingEditMode: function (e) {
+    if (e.which === ENTER_KEY) {
+      e.target.blur();
+    }
+
+    if (e.which === ESCAPE_KEY) {
+      e.target.dataset.abort = 'true';
+      e.target.blur();
+    }
+  },
+
+  saveOrDiscardEdits: function (e) {
+    var el = e.target;
+    var val = el.value.trim();
+    var index = util.indexFromEle(el);
+
+    if (!val) {
+      todoList.deleteTodo(e);
+      view.display();
+      return;
+    }
+
+    if (el.dataset.abort === 'true') {
+      el.dataset.abort = 'false';
+    } else {
+      todoList.todos[index].text = val;
+    }
+
+    util.storeTodos();
+    view.display();
+  },
+  
+  addTodoAndResetInput(e) { // e = change event
+    todoList.addTodo(e.target.value);
+    e.target.value = '';
   }
 }
 
 var view = {
-  display(filter) {
-    console.log(todoList.filterTodos(filter));
-    // filter todos
-    // pass filtered todos into handlebars template
-    // inject template into document
+  getBody(filteredTodos) {
+    var todoHTML = this.todoTemplate(filteredTodos);
+    return todoHTML;
   },
+
+  getFooter() {
+    var todoCount = todoList.todos.length;
+    var activeTodoCount = todoList.getActiveTodos().length;
+    var footerHTML = this.footerTemplate({
+      completedTodos: todoCount - activeTodoCount,
+    });
+    return footerHTML;
+  },
+
+  display() {
+    var todos = todoList.todos;
+    var todoUl = document.getElementById('todo-list');
+    var footer = document.getElementById('footer');
+    var bodyHTML = this.getBody(todos);
+    var footerHTML = this.getFooter();
+    var newTodoField = document.getElementById('new-todo');
+
+    todoUl.innerHTML = bodyHTML;
+    footer.innerHTML = footerHTML;
+    newTodoField.focus();
+    console.log(todos);
+  },
+
+  showEditBox(e) { // e = dblclick
+    var inputField = e.target.closest('li');
+    inputField.className = 'editing';
+    inputField.querySelector('.edit').focus();
+  } 
 }
 
-handlers.setUpEventListeners();
+util.init();
 
-// DONE It should have a button for toggling todos
-// DONE It should have a button to delete completed todos
-// DONE There should be a data structure for the todos we are 'viewing'
-// There should be a <li> for every todo
-// Each <li> should contain todoText
-// It should have a method for deleting completed todos.
-// Clicking the buttons should run their associated methods
-// It should have a field to enter todos
-// It should have a delete button for each todo
-// Clicking the delete button should run deleteTodo
-// Double clicking a todo should allow you to edit it.
-// It should cross out completed todos
-// It should store todos in localStorage
-// The app should initialise by pulling todos from storage.
-// the app should update storage whenever the todo list changes.
-// Pressing ENTER when the cursor is focused on a non-empty input field should add that todo
 // Pressing ENTER when the cursor is focused on a todo should shift the cursor to a new empty todo below the current one
 // Pressing TAB at the beginning or end of a todotext input should indent that todo.
 // Indenting a todo should also indent any nested todos at the same time.
-// filter should be linked to page address: #all, #completed, #active
+

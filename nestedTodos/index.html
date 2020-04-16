@@ -1,18 +1,37 @@
-
 <html>
+  <head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="styles.css">
+  </head>
   <body>
-    <div id="buttonDiv">
-      <input type="button" value="Toggle All" id="toggleAll">
-      <input type="button" value="Clear Completed" id="deleteCompleted">
-      <input type="button" value="Show All" id ="filterAll">
-      <input type="button" value="Show Active" id ="filterActive">
-      <input type="button" value="Show Completed" id ="filterCompleted">
-    </div>
-
-    <ul id="todoUl">
-
-    </ul>
+    <section id="todoapp">
+			<header id="header">
+				<h1>nested todos</h1>
+				<input id="new-todo" placeholder="Let's get started." autofocus>
+      </header>
+      <section id= "main">
+        <input id="toggle-all" type="checkbox">
+        <label for="toggle-all">Mark all as complete</label>
+        <ul id="todo-list"></ul>
+      </section>
+      <footer id="footer"></footer>
+    </section>
+  <script id="todo-template" type="text/x-handlebars-template">
+    {{#this}}
+    <li {{#if completed}}class="completed"{{/if}} data-id="{{id}}">
+      <div class="view">
+        <input class="toggle" type="checkbox" {{#if completed}}checked{{/if}}>
+        <label>{{text}}</label>
+        <button class="delete"></button>
+      </div>
+      <input class="edit" value="{{text}}">
+    </li>
+  {{/this}}
+  </script>
+  <script id="footer-template" type="text/x-handlebars-template">
+    {{#if completedTodos}}<button id="clear-completed">Clear completed</button>{{/if}}
+  </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/2.0.0/handlebars.js"></script>
+    <script src="app.js"></script>
   </body>
-  <script src="app.js"></script>
 </html>
-<!-- <script src="app.js"></script> -->
