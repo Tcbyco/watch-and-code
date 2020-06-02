@@ -6,30 +6,40 @@
   <body>
     <section id="todoapp">
 			<header id="header">
-				<h1>nested todos</h1>
+				<h1>nested MVC</h1>
 				<input id="new-todo" placeholder="Let's get started." autofocus>
       </header>
-      <section id= "main">
+      <section id="main">
         <input id="toggle-all" type="checkbox">
         <label for="toggle-all">Mark all as complete</label>
         <ul id="todo-list"></ul>
       </section>
       <footer id="footer"></footer>
     </section>
-  <script id="todo-template" type="text/x-handlebars-template">
-    {{#this}}
+  <script id="recursive-list" type="x-handlebars-template">
+    {{#each todos}} 
     <li {{#if completed}}class="completed"{{/if}} data-id="{{id}}">
       <div class="view">
-        <input class="toggle" type="checkbox" {{#if completed}}checked{{/if}}>
-        <label>{{text}}</label>
+        <div class="checkbox">
+          <input class="toggle" type="checkbox" {{#if completed}}checked{{/if}}>
+          <label>{{text}}</label>
+        </div>
         <button class="delete"></button>
       </div>
       <input class="edit" value="{{text}}">
+        {{#if todos}} {{! Within the context of the current todo }}
+        <ul>
+        {{> list}} {{! Recursively render the partial }}
+        </ul>
+        {{/if}}
     </li>
-  {{/this}}
-  </script>
+    {{/each}}
+</script>
+<script id="todo-template" type="x-handlebars-template">
+    {{> list}}
+</script>
   <script id="footer-template" type="text/x-handlebars-template">
-    {{#if completedTodos}}<button id="clear-completed">Clear completed</button>{{/if}}
+    {{#if completedTodos}}<button id="clear-completed">Remove completed</button>{{/if}}
   </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/2.0.0/handlebars.js"></script>
     <script src="app.js"></script>

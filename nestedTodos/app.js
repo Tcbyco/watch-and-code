@@ -1,5 +1,11 @@
 /*global Handlebars */
 
+/*Based on the jQuery version of the open source Todo MVC project: 
+https://github.com/tastejs/todomvc/tree/master/examples/jquery
+Rewritten to use vanilla JS, nest todos recursively, and slight visual changes.
+*/
+
+
 Handlebars.registerHelper('eq', function (a, b, options) {
   return a === b ? options.fn(this) : options.inverse(this);
 });
@@ -9,10 +15,19 @@ const ESCAPE_KEY = 27;
 const TAB_KEY = 9;
 
 var util = {
-  'id': 0,
   makeId() {
-    this.id ++;
-    return this.id; 
+			var i, random;
+			var uuid = '';
+
+			for (i = 0; i < 32; i++) {
+				random = Math.random() * 16 | 0;
+				if (i === 8 || i === 12 || i === 16 || i === 20) {
+					uuid += '-';
+				}
+				uuid += (i === 12 ? 4 : (i === 16 ? (random & 3 | 8) : random)).toString(16);
+			}
+
+			return uuid;
   },
 
   storeTodos() {
@@ -39,56 +54,98 @@ var util = {
     view.display();
   },
 
-  indexFromEle(element, todoArray) {
-    // This must account for nested todos.
-
-/*  var id = the dataset 'id' from the li parent/ancestor of element;
-    var todos = todoList.todos;
-    var i = todos.length;
-
-    while (i--) {
-      if (todos[i].id === id) {
-        return todo object reference;
-      } 
-
-      if (todos[i].subTodos) {
-        return indexFromEle(element, todos[i].subTodos); 
-      }
-      
-    }
-    */
-    var id = Number(element.closest('li').dataset.id);
-		var todos = todoList.todos;
-    var i = todos.length;
+  // indexFromEle(element) { 
+  //   var id = element.closest('li').dataset.id;
+	// 	var todos = todoList.todos;
+  //   var i = todos.length;
     
-    while (i--) {
-			if (todos[i].id === id) {
-        return i;			
+  //   while (i--) {
+	// 		if (todos[i].id === id) {
+  //       return i;			
+  //     }
+	// 	}
+  // },
+
+  getTodoFromId(array, id) {
+    for (var i = 0; i < array.length; i++) {
+        if (array[i].id == id) {
+            return array[i];
+        }
+        if (array[i].todos.length > 0) {
+          var found = util.getTodoFromId(array[i].todos, id);
+          if (found) {
+            return found;
+        }
       }
-		}
+    }
   }
 }
 
-var todoList = { // is this really the list? Better name?
+var todoList = { 
   todoFilter: 'all', 
   
   addTodo(text) {
     this.todos.push({
       'text': text,
       'id': util.makeId(),
-      'completed': false  
+      'completed': false,
+      'todos': [],
     });
 
     view.display(this.todoFilter);
   },
 
+  addEmptySubTodo(parentElement) {
+    var parentId = parentElement.dataset.id;
+    var parentTodo = util.getTodoFromId(this.todos, parentId);
+    var blankTodo = {
+      'text': '',
+      'id': util.makeId(), 
+      'completed': false,
+      'todos': [],
+      
+    };
+    parentTodo.todos.push(blankTodo);
+    return blankTodo.id; // for use when selecting this immediately after creation
+  },
+
   deleteTodo(event) {
-    var element = event.target;
-    var index = util.indexFromEle(element);
-    this.todos.splice(index, 1);
+    var deleteButton = event.target;
+    var id = deleteButton.closest('li').dataset.id;
+    // recursively filter sub todo out of array
+    todoList.todos = todoList.todos.filter(
+      function rebuildTodos(value, index, array){
+        if (value.id === id) {
+          return false;
+        } else if (value.todos.length > 0) {
+          value.todos = value.todos.filter(rebuildTodos);
+        }
+        return true;
+      });
 
     util.storeTodos();
     view.display();
+  },
+
+  filterTodos(filter) { // will deprecate in future    
+    var filteredTodos = this.todos.filter(function(todo){
+      if (filter === 'all') {
+        return true;
+      }
+  
+      if (filter === 'active') {
+        if (!todo.completed) {
+          return true;
+        }
+      }
+  
+      if (filter === 'completed') {
+        if (todo.completed) {
+          return true;
+        }
+      }
+    });
+    return filteredTodos;
   },
 
   deleteCompleted() {
@@ -103,13 +160,10 @@ var todoList = { // is this really the list? Better name?
   },
 
   toggleCompleted(e) {
-    /* This must factor in nested todos.
-    var index = util.indexFromEle(e);
-    var todos = this.todos;
-     */
     var element = e.target;
-    var index = util.indexFromEle(element);
-    this.todos[index].completed = !this.todos[index].completed;
+    var id = element.closest('li').dataset.id;
+    var todo = util.getTodoFromId(todoList.todos, id);
+    todo.completed = !todo.completed;
     view.display();
   },
 
@@ -133,43 +187,16 @@ var todoList = { // is this really the list? Better name?
     util.storeTodos();
     view.display();
   },
-  
-  filterTodos(filter) { // deprecated
-    // set the filter to be whatever we passed in. Should this be here?
-    this.todoFilter = filter;
-    
-    // create a filtered todo array that matches the filter
-    var filteredTodos = this.todos.filter(function(todo){
-      if (filter === 'all') {
-        return true;
-      }
-  
-      if (filter === 'active') {
-        if (!todo.completed) {
-          return true;
-        }
-      }
-  
-      if (filter === 'completed') {
-        if (todo.completed) {
-          return true;
-        }
-      }
-    });
-    return filteredTodos;
-  },
 
   getActiveTodos() {
-    return this.todos.filter(function(todo){
+    return this.todos.filter(function(todo) {
       return !todo.completed;
-    })
+    });
   }
-
 }
 
 var handlers = {
   setUpEventListeners() {
-    // grab buttons that need event listeners.
     var toggleAllButton = document.getElementById('toggle-all');
     var footer = document.getElementById('footer');
     var newTodoField = document.getElementById('new-todo');
@@ -182,6 +209,9 @@ var handlers = {
       if (event.target.className === 'delete') {
         todoList.deleteTodo(event);
       }
+      if (event.target.nodeName === 'LABEL') {
+        view.showEditBox(event.target.closest('li'));
+      }
     }.bind(this));
 
     todoUl.addEventListener('change', function(event) {
@@ -192,12 +222,15 @@ var handlers = {
 
     todoUl.addEventListener('dblclick', function(event){
       if (event.target.nodeName === 'LABEL') {
-        view.showEditBox(event);
+        view.showEditBox(event.target.closest('li'));
       }
     }.bind(view));
 
-    todoUl.addEventListener('keyup', function(event){
+    todoUl.addEventListener('keydown', function(event){
       if (event.target.className === 'edit') {
+        if (event.which === TAB_KEY) {
+          event.preventDefault();
+        }
         handlers.checkIfExitingEditMode(event);
       }
     }.bind(this));
@@ -215,24 +248,6 @@ var handlers = {
     }.bind(todoList));
   },
 
-  handleEdits(e) { // e = focusout
-    var element = e.target;
-    var newText = element.value;
-    var index = util.indexFromEle(element);
-    var todos = todoList.todos;
-
-    if (newText === '') {
-      todoList.deleteTodo(todoIndex);
-      
-      util.storeTodos();
-      view.display();
-    } else {
-      todos[index].text = newText;
-      util.storeTodos();
-      view.display();
-    }
-  },
-
   checkIfExitingEditMode: function (e) {
     if (e.which === ENTER_KEY) {
       e.target.blur();
@@ -242,12 +257,22 @@ var handlers = {
       e.target.dataset.abort = 'true';
       e.target.blur();
     }
+
+    if (e.which === TAB_KEY) {
+      e.target.dataset.abort = 'true';
+      let id = todoList.addEmptySubTodo(e.target.closest('li'))
+      view.display();
+      let searchString = '[data-id="' + id + '"]'; // interpolation issues, resorted to string concat
+      let li = document.querySelector(searchString);
+      view.showEditBox(li);
+    }
   },
 
   saveOrDiscardEdits: function (e) {
     var el = e.target;
     var val = el.value.trim();
-    var index = util.indexFromEle(el);
+    var id = el.closest('li').dataset.id;
+    var todo = util.getTodoFromId(todoList.todos, id);
 
     if (!val) {
       todoList.deleteTodo(e);
@@ -258,7 +283,7 @@ var handlers = {
     if (el.dataset.abort === 'true') {
       el.dataset.abort = 'false';
     } else {
-      todoList.todos[index].text = val;
+     todo.text = val;
     }
 
     util.storeTodos();
@@ -269,11 +294,17 @@ var handlers = {
     todoList.addTodo(e.target.value);
     e.target.value = '';
   }
+
 }
 
 var view = {
-  getBody(filteredTodos) {
-    var todoHTML = this.todoTemplate(filteredTodos);
+  getBody(todoArray) {
+    var script = document.getElementById('todo-template').innerText;
+    var todoTemplate = Handlebars.compile(script);
+    var recursiveScript = document.getElementById('recursive-list').innerText;
+    Handlebars.registerPartial("list", recursiveScript);
+    
+    var todoHTML = todoTemplate({ todos: todoArray })
     return todoHTML;
   },
 
@@ -281,6 +312,7 @@ var view = {
     var todoCount = todoList.todos.length;
     var activeTodoCount = todoList.getActiveTodos().length;
     var footerHTML = this.footerTemplate({
+      hide: todoCount === 0,
       completedTodos: todoCount - activeTodoCount,
     });
     return footerHTML;
@@ -298,18 +330,17 @@ var view = {
     footer.innerHTML = footerHTML;
     newTodoField.focus();
     console.log(todos);
+    util.storeTodos();
   },
 
-  showEditBox(e) { // e = dblclick
-    var inputField = e.target.closest('li');
-    inputField.className = 'editing';
-    inputField.querySelector('.edit').focus();
+  showEditBox(liElement) { 
+    // try changing div
+    // var div = liElement.querySelector('.view')
+    // div.className = 'editing'
+    liElement.className = 'editing';
+    liElement.querySelector('.edit').focus();
   } 
 }
 
 util.init();
-
-// Pressing ENTER when the cursor is focused on a todo should shift the cursor to a new empty todo below the current one
-// Pressing TAB at the beginning or end of a todotext input should indent that todo.
-// Indenting a todo should also indent any nested todos at the same time.
 
