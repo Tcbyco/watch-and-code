@@ -11,6 +11,7 @@ Mark as complete by clicking to the **left** of any todo.
 **Tab** while editing to create a child todo underneath the current todo.
 
 ## Todo:
+* Update tests.
 * Realign delete buttons - their display is inconsistent (non responsive) and not centred.
 * Fix multi selection bug: editing a parent todo will also apply edit styles to the child.
 * Extend invisible completion checkbox to require less precision when marking as complete.
