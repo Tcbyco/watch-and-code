@@ -1,1 +1,3 @@
-# Learning Exercises inspired by the Watch and Code curriculum
+# Learning Exercises inspired by the Watch And Code curriculum
+
+## www.watchandcode.com
