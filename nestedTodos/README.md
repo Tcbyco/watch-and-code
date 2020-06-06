@@ -12,10 +12,6 @@ Mark as complete by clicking to the **left** of any todo.
 
 ## Todo:
 * Update tests.
-* Realign delete buttons - their display is inconsistent (non responsive) and not centred.
-* Fix multi selection bug: editing a parent todo will also apply edit styles to the child.
-* Extend invisible completion checkbox to require less precision when marking as complete.
-* Fix incorrect behavior whereby the check all button does not correctly toggle nested/child 
-todos that are already marked as complete.
-* Fix visual bug when creating a child todo (TAB) when adding a child (click todo -> tab -> tab).
+* Replace invisiable checkbox with minimal design.
 * Make app more responsive.
+* limit edit box length when it exceeds the width of the todoapp page.
