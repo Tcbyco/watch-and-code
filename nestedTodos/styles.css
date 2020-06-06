@@ -33,6 +33,7 @@ body {
 button,
 input[type="checkbox"] {
 	outline: none;
+	background-color: #fff;
 }
 
 .hidden {
@@ -144,19 +145,19 @@ label[for='toggle-all'] {
 	border-bottom: none;
 }
 
-#todo-list li.editing {
+ul > li.editing {
 	border-bottom: none;
 	padding: 0;
 }
 
-#todo-list li.editing .edit {
+#todo-list li.editing > .edit {
 	display: block;
 	width: 506px;
 	padding: 13px 17px 12px 17px;
 	margin: 0 0 0 43px;
 }
 
-#todo-list li.editing .view {
+#todo-list li.editing > .view {
 	display: none;
 }
 
@@ -205,6 +206,7 @@ label[for='toggle-all'] {
 
 #todo-list li .delete:hover {
 	color: #af5b5e;
+	background-color: #fff;
 }
 
 #todo-list li .delete:after {
