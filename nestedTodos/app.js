@@ -1,8 +1,9 @@
 /*global Handlebars */
 
-/*Based on the jQuery version of the open source Todo MVC project: 
+/*Inspired by the jQuery version of the open source Todo MVC project: 
 https://github.com/tastejs/todomvc/tree/master/examples/jquery
-Rewritten to use vanilla JS, nest todos recursively, and slight visual changes.
+Rewritten to use vanilla JS. Implimented a nested todos feature. 
+Slight visual changes. 
 */
 
 
@@ -35,14 +36,6 @@ var util = {
   },
 
   getTodos() {
-    // let todoCount = JSON.parse(localStorage.getItem('todoCount'));
-    // if (!todoCount) {
-    //   todoList.checkedTodos = 0; 
-    //   todoList.uncheckedTodos = 0;
-    //   todoList.todos = [];
-    // } else {
-    //   todoList.checkedTodos = todoCount.checked;
-    //   todoList.uncheckedTodos = todoCount.unchecked;
       todoList.todos = JSON.parse(localStorage.getItem('todos'));
       if (!todoList.todos) { 
         todoList.todos = [];
@@ -122,27 +115,6 @@ var todoList = {
     view.display();
   },
 
-  filterTodos(condition) { // ?deprecate in future    
-    let filteredTodos = this.todos.filter(function filt(todo){
-
-      // if (condition === 'active') {
-      //   if (todo.todos.length > 0) { // filter sub todos
-      //     todo.todos = todo.todos.filter(filt);
-      //   }
-      //   if (!todo.completed) {
-      //     return true;
-      //   }
-      // }
-  
-      if (condition === 'completed') {
-        if (todo.completed || todo.todos.length > 0) { //) { // keep the todo if it has completed sub todos. 
-          return true;
-        }
-      }
-    });
-    return filteredTodos;
-  },
-
   deleteCompleted() {
     var activeTodos = this.getActiveTodos();
     this.todos = activeTodos;
@@ -181,28 +153,7 @@ var todoList = {
     view.display();
   },
 
-  // oldToggleAll() {
-  //   var listLength = this.todos.length;
-  //   var numCompleted = 0;
-    
-  //   this.todos.forEach(function(todo) {
-  //     if (todo.completed) {
-  //       numCompleted++;
-  //     }
-  //   });
-
-  //   var everythingTrue = numCompleted === listLength;
-  //   var toggleValue = everythingTrue ? false : true;
-
-  //   this.todos.forEach(function(todo) {
-  //     todo.completed = toggleValue;
-  //   });
-
-  //   util.storeTodos();
-  //   view.display();
-  // },
-
-  getActiveTodos() { // DEPRECATE
+  getActiveTodos() {
     return this.todos.filter(function filt(todo){
         if (todo.todos.length > 0) { // filter sub todos
           todo.todos = todo.todos.filter(filt);
@@ -334,8 +285,6 @@ var view = {
   },
 
   getFooter() {
-    // let todoCount = todoList.checkedTodos + todoList.uncheckedTodos;
-    //let activeTodoCount = todoList.getActiveTodos().length;
     let anyCompleted = todoList.todos.some(function anyComplete(todo){
       if (todo.todos.length === 0) {
         return todo.completed;
@@ -344,9 +293,7 @@ var view = {
       }
     });
     let footerHTML = this.footerTemplate({
-      // hide: todoCount === 0,
-      //completedTodos: anyCompleted
-      anyCompletedTodos: anyCompleted // anyCompleted;
+      anyCompletedTodos: anyCompleted
     });
     return footerHTML;
   },
