@@ -1,6 +1,6 @@
 # Nested MVC
 Based on the open source TodoMVC project (https://github.com/tastejs/todomvc),
-this is my version of the jQuery version of that project. I've rewritten the app to remove jQuery,
+this is my take on the jQuery version of that project. I've rewritten the app to remove jQuery,
 and extended the Handlebars.js templating to allow unlimited nesting of todos. I've also slightly changed
 the style of the app to match my preferences.
 
